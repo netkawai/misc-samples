@@ -327,7 +327,7 @@ void TooSmall(Window win, GC gc, XFontStruct font_info)
   char  *string1 = "Too Small";
   int y_offset,x_offset;
 
-  y_offset = font_info->ascent + 2;
+  y_offset = font_info.ascent + 2;
   x_offset = 2;
 
   /* Output text, centered on each line */
