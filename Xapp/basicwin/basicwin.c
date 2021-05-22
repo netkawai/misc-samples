@@ -228,12 +228,12 @@ void getGC(Window win, GC* gc, XFontStruct *font_info)
 
 void load_font(XFontStruct **font_info)
 {
-  char *fontname = "9x15";
+  char *fontname = "6x13";
 
   /* Load font and get font information structure */
   if((*font_info = XLoadQueryFont(display,fontname)) == NULL)
   {
-      (void)fprintf(stderr , "%s: Cannot open 9x15 font \n",
+      (void)fprintf(stderr , "%s: Cannot open 6x13 font \n",
 	       progname);
       exit(-1);
   }

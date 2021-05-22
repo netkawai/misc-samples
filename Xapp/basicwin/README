@@ -1,5 +1,7 @@
-Volume 1のXlibプログラミングマニュアルに載っている
-basicwinのソース、及び、automake,autoconfでconfigure
-Makefileを作るためのMakefile.am,configure.in
+Volume 1 Xlib (X11)
+basicwin automake,autoconf configure
+Makefile Makefile.am,configure.in
 
-jpwinはbasicwinの表示を日本語にしてものである
+jpwin basicwin
+
+# 2021 I finally paritally deleted Japanese characters after 22 years.
