@@ -1,25 +1,33 @@
-// gcc -o wayland-egl wayland-egl.c -lX11 -lglx -lEGL -lGL
+// gcc -o x11-egl x11-egl.c -lX11 -lEGL -lGL
 
+/* Standard C include file */
+#include <stdio.h>
+#include <string.h>
 
-#include <X11/Xlib.h>
+/* EGL and GL */
 #include <EGL/egl.h>
 #include <GL/gl.h>
-#include <string.h>
+
+/* Xlib include files */
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xos.h>
+#include <X11/Xatom.h>
 
 #define WIDTH 256
 #define HEIGHT 256
 
-static struct display* x11_display;
+static Display* x11_display;
 static EGLDisplay egl_display;
 static char running = 1;
 
 struct window
 {
     EGLContext egl_context;
-    struct Window x11_window;
+    Window x11_window;
     EGLSurface egl_surface;
 };
-
+#if 0
 // listeners
 static void registry_add_object
     (
@@ -78,6 +86,7 @@ static struct wl_shell_surface_listener shell_surface_listener =
     &shell_surface_configure,
     &shell_surface_popup_done
 };
+#endif
 
 static void create_window( struct window* window, int32_t width, int32_t height )
 {
@@ -88,21 +97,23 @@ static void create_window( struct window* window, int32_t width, int32_t height 
     eglChooseConfig( egl_display, attributes, &config, 1, &num_config );
     window->egl_context = eglCreateContext( egl_display, config, EGL_NO_CONTEXT, NULL );
 
-    window->x11_window = XCreateDindow(x11_display, root, 0,0, width, height,
-                                       0, info->depth
+    Window root = DefaultRootWindow(x11_display);
+    window->x11_window = XCreateSimpleWindow(x11_display, root, 0,0, width, height,
+                                       0,0,0xffffffff); 
 
-    window->egl_window = wl_egl_window_create( window->surface, width, height );
-    window->egl_surface = eglCreateWindowSurface( egl_display, config, window->egl_window, NULL );
+    // window->egl_window = wl_egl_window_create( window->surface, width, height );
+    window->egl_surface = eglCreateWindowSurface( egl_display, config, window->x11_window, NULL );
     eglMakeCurrent( egl_display, window->egl_surface, window->egl_surface, window->egl_context );
 }
 
 static void delete_window( struct window* window )
 {
     eglDestroySurface( egl_display, window->egl_surface );
-    wl_egl_window_destroy( window->egl_window );
-    wl_shell_surface_destroy( window->shell_surface );
-    wl_surface_destroy( window->surface );
+    // wl_egl_window_destroy( window->egl_window );
+    // wl_shell_surface_destroy( window->shell_surface );
+    // wl_surface_destroy( window->surface );
     eglDestroyContext( egl_display, window->egl_context );
+    //XDestroyWindow(window->x11_window);
 }
 
 static int had_displayed = 0;
@@ -127,7 +138,7 @@ static void draw_window( struct window* window )
 
 int main()
 {
-    x11_display = XOpenDislay( NULL );
+    x11_display = XOpenDisplay( NULL );
 
     egl_display = eglGetDisplay( x11_display );
     eglInitialize( egl_display, NULL, NULL );
@@ -135,14 +146,35 @@ int main()
     struct window window;
     create_window( &window, WIDTH, HEIGHT );
 
-    while( running )
+    /*Display window */
+    XMapWindow(x11_display, window.x11_window);
+
+    /* Get events, use first to display text and graphics */
+    while(running)
     {
-        wl_display_dispatch_pending( display );
+        while ( XPending ( x11_display ) ) {
+            XEvent report;
+            XNextEvent(x11_display,&report);
+            switch(report.type){
+                case ButtonPress:
+                /* Trickle down into KeyPress (no break) */
+                case KeyPress:
+                running = 0;
+                break;
+                default:
+                /* All events selected by StructureNotifyMask
+                 * except ConfigureNotify are thrown away here,
+                 * since noting is done with them */
+                break;
+            } 
+        }
         draw_window( &window );
     }
 
     delete_window( &window );
     eglTerminate( egl_display );
-    wl_display_disconnect( display );
+    // wl_display_disconnect( x11_display );
+    XDestroyWindow(x11_display,window.x11_window);
+    XCloseDisplay(x11_display);
     return 0;
 }
