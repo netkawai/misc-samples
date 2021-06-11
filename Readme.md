@@ -35,3 +35,19 @@ Belief: Islam
 Leader: Charlemagne(748CE)
 Language: Colloquial
 Belief: Christianity, Renaissance
+
+
+
+
+Calculation for skews for two lines
+
+Line a
+Line b
+[Vector.Norm = sqrt(x*x+y*y+z*z)]
+Vector M = a.direction.Cross(b.direction)
+
+If M.Norm < Tolerance then coplanar
+
+Vector R = (1.0/ (M.Norm)^2) * (a.Point - b.Point).Cross(M)
+
+Return (b.Direction.Dot(R), a.Direction.Dot(R))
