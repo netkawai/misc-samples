@@ -1,0 +1,17 @@
+jupyter
+jupyter_contrib_nbextensions
+jupyter_nbextensions_configurator
+matplotlib
+seaborn
+numpy
+scipy
+pandas
+sympy
+ipywidgets
+yapf
+autopep8
+svgwrite
+pyparsing
+holidays
+requests
+black
