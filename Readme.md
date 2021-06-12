@@ -51,3 +51,9 @@ If M.Norm < Tolerance then coplanar
 Vector R = (1.0/ (M.Norm)^2) * (a.Point - b.Point).Cross(M)
 
 Return (b.Direction.Dot(R), a.Direction.Dot(R))
+
+
+https://research.hackerrank.com/developer-skills/2018
+
+uvicorn default 8000
+npm run serve 8080
