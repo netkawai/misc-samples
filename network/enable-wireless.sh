@@ -2,8 +2,14 @@
 # I assume that wpa_supplicant, systemd-networkd and systemd-resolved were already installed
 # Use relative path, I do not write sudo
 
+if "$#" < 1; then
+ echo 'Please specify PSK password'
+ exit(-1)
+fi
+
 # copy wpa_suplicant.conf with a correct interface name (wlp4s0 should match the interface name)
 cp ./wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant-wlp8s0.conf
+sed 's/XXX/"$1"/g' /etc/wpa_supplicant/wpa_supplicant-wlp8s0.conf
 systemctl enable wpa_supplicant@wlp8s0.service
 
 cp ./20-wireless.network /etc/systemd/network/20-wlp8s0.network
