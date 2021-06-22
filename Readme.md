@@ -57,3 +57,17 @@ https://research.hackerrank.com/developer-skills/2018
 
 uvicorn default 8000
 npm run serve 8080
+
+
+International yard     0.9144 exactly
+Imperial yard(UK-past) 0.9143969 exactly
+US Survey yard(USA)    3600/3937 exactly
+
+International pound
+0.45359237 kilograms
+0.45359237
+
+(0.3048/12.0) == 0.0254 NG
+(3.048/120) == 0.0254 OK
+(1.1+0.11) == 1.21 NG
+(11+1.1) == 12.1 OK
