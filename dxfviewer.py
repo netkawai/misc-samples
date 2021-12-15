@@ -9,5 +9,6 @@ except IOError:
 except ezdxf.DXFStructureError:
     print(f'Invalid or corrupted DXF file.')
     sys.exit(2)
+
 msp = doc.modelspace()
-msp.sho
+msp.show
