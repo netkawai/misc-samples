@@ -14,7 +14,7 @@ def lines_from_points(points):
 
 
 plotter = pv.Plotter()
-gdf = gpd.read_file('rings.dxf')
+gdf = gpd.read_file('Top Drift.dxf')
 #gdf.plot()
 for gem in gdf.geometry:
     polyline = lines_from_points(np.array(list(gem.coords)))
@@ -22,4 +22,4 @@ for gem in gdf.geometry:
     plotter.add_mesh(tube)
     
 plotter.show()
-#plotter.set_position([19157,50053,9392])
+plotter.set_position([19157,50053,9392])
