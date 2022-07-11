@@ -1,0 +1,17 @@
+<Configuration>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>C:\Development</HostFolder>
+	<SandboxFolder>C:\Development</SandboxFolder> 
+      <ReadOnly>false</ReadOnly>
+    </MappedFolder>
+    <MappedFolder>
+      <HostFolder>C:\Users\Kawai\OneDrive\Home</HostFolder>
+      <ReadOnly>false</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <Command>C:\Users\WDAGUtilityAccount\Desktop\Home\Sandbox-logon.cmd</Command>
+  </LogonCommand>
+  <vGpu>Enable</vGpu>
+</Configuration>
