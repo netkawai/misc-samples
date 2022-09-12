@@ -22,8 +22,9 @@ import sys  # For simplicity, we'll read config file from 1st CLI param sys.argv
 import json, logging, msal, requests
 
 # Optional logging
-# logging.basicConfig(level=logging.DEBUG)  # Enable DEBUG log for entire script
-# logging.getLogger("msal").setLevel(logging.INFO)  # Optionally disable MSAL DEBUG logs
+logging.basicConfig(level=logging.DEBUG)  # Enable DEBUG log for entire script
+logging.getLogger("msal").setLevel(logging.DEBUG)  # Optionally disable MSAL DEBUG logs
+
 
 config = json.load(open(sys.argv[1]))
 
@@ -77,3 +78,79 @@ else:
     print(result.get("error"))
     print(result.get("error_description"))
     print(result.get("correlation_id"))  # You may need this when reporting a bug
+
+"""OneDrive raw/bear Microsoft Graph access has not test yet
+token = result['access_token']
+refresh_token = json.loads(response.text)["refresh_token"]
+
+URL = 'https://graph.microsoft.com/v1.0/'
+HEADERS = {'Authorization': 'Bearer ' + token}
+response = requests.get(URL + 'me/drive/', headers = HEADERS)
+if (response.status_code == 200):
+    response = json.loads(response.text)
+    print('Connected to the OneDrive of', response['owner']['user']['displayName']+' (',response['driveType']+' ).', \
+         '\nConnection valid for one hour. Reauthenticate if required.')
+elif (response.status_code == 401):
+    response = json.loads(response.text)
+    print('API Error! : ', response['error']['code'],\
+         '\nSee response for more details.')
+else:
+    response = json.loads(response.text)
+    print('Unknown error! See response for more details.')
+
+ Refresh token
+def get_refresh_token():
+    data = {
+        "client_id": client_id,
+        "scope": permissions,
+        "refresh_token": refresh_token,
+        "redirect_uri": redirect_uri,
+        "grant_type": 'refresh_token',
+        "client_secret": 'xxxx-yyyy-zzzz',
+    }
+
+    response = requests.post(URL, data=data)
+
+    token = json.loads(response.text)["access_token"]
+    refresh_token = json.loads(response.text)["refresh_token"]
+    last_updated = time.mktime(datetime.today().timetuple())
+
+    return token, refresh_token, last_updated
+
+  # List folder
+  items = json.loads(requests.get(URL + 'me/drive/root/children', headers=HEADERS).text)
+  items = items['value']
+  for entries in range(len(items)):
+    print(items[entries]['name'], '| item-id >', items[entries]['id'])
+
+  # Upload file
+  url = 'me/drive/items/C1465DBECD7188C9!103:/large_file.dat:/createUploadSession'
+  url = URL + url
+  url = json.loads(requests.post(url, headers=HEADERS).text)
+  url = url['uploadUrl']
+  file_path = '/local/file/path/large_file.dat'
+  file_size = os.path.getsize(file_path)
+  chunk_size = 320*1024*10 # Has to be multiple of 320 kb
+  no_of_uploads = file_size//chunk_size
+  content_range_start = 0
+  if file_size < chunk_size :
+    content_range_end = file_size
+  else :
+    content_range_end = chunk_size - 1
+
+  data = open(file_path, 'rb')
+  while data.tell() < file_size:
+    if ((file_size - data.tell()) <= chunk_size):
+        content_range_end = file_size -1
+        headers = {'Content-Range' : 'bytes '+ str(content_range_start)+ '-' +str(content_range_end)+'/'+str(file_size)}
+        content = data.read(chunk_size)
+        response = json.loads(requests.put(url, headers=headers, data = content).text)
+    else:
+        headers = {'Content-Range' : 'bytes '+ str(content_range_start)+ '-' +str(content_range_end)+'/'+str(file_size)}
+        content = data.read(chunk_size)
+        response = json.loads(requests.put(url, headers=headers, data = content).text)
+        content_range_start = data.tell()
+        content_range_end = data.tell() + chunk_size - 1
+   data.close()
+   response2 = requests.delete(url)
+"""
