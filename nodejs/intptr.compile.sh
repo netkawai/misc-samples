@@ -1,1 +1,0 @@
-gcc `pkg-config --cflags glib-2.0` intptr.c
