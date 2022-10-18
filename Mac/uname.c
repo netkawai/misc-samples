@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h> // isdigit
 
 #include <mach/mach.h>
 #include <mach/host_info.h>
@@ -53,6 +54,8 @@ int uFlags = 0;
 #define VERSION      8
 #define MACHINE      16
 #define ARCH         32
+
+host_t host_self();
 
 /*
  * Print out a simple usage message
@@ -258,4 +261,4 @@ int main(int argc, char **argv)
   exit(EXIT_SUCCESS);
 }
 
-/* uname.c ends here *
+/* uname.c ends here */
