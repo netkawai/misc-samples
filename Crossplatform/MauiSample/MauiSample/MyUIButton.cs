@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Maui.Handlers;
+using Microsoft.UI.Xaml;
 
 namespace MauiSample
 {
@@ -18,7 +19,7 @@ namespace MauiSample
 
         public string Text { get; set; }
     }
-
+#if IOS || MACCATALYST
     public partial class MyButtonHandler : ViewHandler<IMyButton, UIKit.UIButton>
     {
 
@@ -44,5 +45,18 @@ namespace MauiSample
             
         }
     }
+#else
+    public partial class MyButtonHandler : ViewHandler<IMyButton, FrameworkElement>
+    {
+        public MyButtonHandler(IPropertyMapper mapper, CommandMapper commandMapper = null) : base(mapper, commandMapper)
+        {
+        }
+
+        protected override FrameworkElement CreatePlatformView()
+        {
+            return new Microsoft.UI.Xaml.Controls.Button();
+        }
+    }
+#endif
 }
 
