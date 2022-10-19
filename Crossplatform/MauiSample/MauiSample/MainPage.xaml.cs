@@ -22,7 +22,7 @@ public partial class MainPage : ContentPage
         View btn = sender as View;
         if (btn.Handler == null)
             return;
-#if true
+#if IOS || MACCATALYST
         System.Diagnostics.Debug.WriteLine((btn.Handler.PlatformView as UIKit.UIButton).TitleColor(UIKit.UIControlState.Normal).ToString());
 #endif
     }
@@ -34,7 +34,7 @@ public partial class MainPage : ContentPage
         if (btn.Handler == null)
             return;
 
-#if true
+#if IOS || MACCATALYST
         System.Diagnostics.Debug.WriteLine((btn.Handler.PlatformView as UIKit.UIButton).Title(UIKit.UIControlState.Normal).ToString());
         System.Diagnostics.Debug.Write(Environment.StackTrace);
 #endif
@@ -57,6 +57,8 @@ public partial class MainPage : ContentPage
         ContentPage page = sender as ContentPage;
         if (page.Handler == null)
             return;
+
+#if IOS || MACCATALYST
         var btn = new UIKit.UIButton(UIKit.UIButtonType.System);
         btn.BackgroundColor = UIKit.UIColor.Black;
         btn.SetTitleColor( UIKit.UIColor.White, UIKit.UIControlState.Normal);
@@ -65,6 +67,7 @@ public partial class MainPage : ContentPage
 
 
         (page.Handler.PlatformView as UIKit.UIView).Add(btn);
+#endif
     }
 }
 
