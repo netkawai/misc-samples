@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.Maui.Handlers;
+#if WINDOWS
 using Microsoft.UI.Xaml;
+#endif
 
 namespace MauiSample
 {
@@ -45,7 +47,7 @@ namespace MauiSample
             
         }
     }
-#else
+#elif WINDOWS
     public partial class MyButtonHandler : ViewHandler<IMyButton, FrameworkElement>
     {
         public MyButtonHandler(IPropertyMapper mapper, CommandMapper commandMapper = null) : base(mapper, commandMapper)

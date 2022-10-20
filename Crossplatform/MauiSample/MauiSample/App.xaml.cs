@@ -2,6 +2,9 @@
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
+#elif MACCATALYST
+using UIKit;
+using CoreGraphics;
 #endif
 
 namespace MauiSample;
@@ -24,6 +27,9 @@ public partial class App : Application
             AppWindow appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
             appWindow.Resize(new SizeInt32(WindowWidth, WindowHeight));
 #elif MACCATALYST
+            var mauiWindow = handler.VirtualView;
+            UIWindow nativeWindow = handler.PlatformView;
+            nativeWindow.WindowScene.SizeRestrictions.MinimumSize = new CGSize(WindowWidth, WindowHeight);
 
 #endif
         });
