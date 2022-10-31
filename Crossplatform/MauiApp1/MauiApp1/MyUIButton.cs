@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Maui.Handlers;
 
-namespace MauiSample
+namespace MauiApp1
 {
 
     public interface IMyButton : IView

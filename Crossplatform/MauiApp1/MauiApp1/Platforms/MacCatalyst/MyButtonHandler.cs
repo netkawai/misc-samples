@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MauiSample.Platforms
+namespace MauiApp1.Platforms
 {
     public partial class MyButtonHandler : ViewHandler<IMyButton, UIKit.UIButton>
     {
