@@ -5,7 +5,6 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
-        System.Diagnostics.Debugger.Launch();
 
         var builder = MauiApp.CreateBuilder();
 		builder
