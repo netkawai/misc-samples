@@ -13,10 +13,7 @@ public static class MauiProgram
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			}).ConfigureMauiHandlers(handlers =>
-            {
-                handlers.AddHandler(typeof(MyButton), typeof(MauiApp1.Platforms.MyButtonHandler));
-            });
+			});
 
         return builder.Build();
 
