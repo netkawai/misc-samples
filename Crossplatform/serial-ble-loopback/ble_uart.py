@@ -16,7 +16,7 @@ UART_CHAR_UUID = "02505aae-5c3d-40ab-a86e-7840971cc85d"
 PORT = 'COM3'
 BAUDRATE = 115200
 TIMEOUT = 0.1
-TRIALS = 10
+TRIALS = 100
 N = 10
 A = 'ABCDEFGHIJKLMNOP'*N
 
@@ -45,6 +45,7 @@ async def send_bt_receive_serial(s : serial.Serial, uart_char :BleakGATTCharacte
     b_str.extend(map(ord, A))
     await client.write_gatt_char(uart_char, b_str,True)
     B = s.read(N1)
+    B = B.decode("utf-8") 
     N2 = len(B)
     if N1 != N2: raise Exception('received %d of %d octets' % (N2, N1))
     for a, b in zip(A, B):
@@ -97,14 +98,18 @@ async def uart_terminal():
         try:
             for i in range(TRIALS):
                 await send_bt_receive_serial(s,rx_char, client)
+                print('Count:', i)
                 # send_serial_receive_bt
+
+            ber = float(total_errors)/float(total_sent)
+            print('%d/%d = %f BER' % (total_errors,total_sent,ber))
+
         except:
             traceback.print_exc(file=sys.stdout)
             print('failed on test %d of %d with N=%d' % (i+1, TRIALS, N))
         finally:
             s.close()
-            client.disconnect()
-
+            #client.disconnect()
 
 if __name__ == "__main__":
     try:
