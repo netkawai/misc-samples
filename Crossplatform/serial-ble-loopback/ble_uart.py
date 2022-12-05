@@ -16,7 +16,7 @@ UART_CHAR_UUID = "02505aae-5c3d-40ab-a86e-7840971cc85d"
 PORT = 'COM3'
 BAUDRATE = 115200
 TIMEOUT = 0.1
-TRIALS = 100
+TRIALS = 10
 N = 10
 A = 'ABCDEFGHIJKLMNOP'*N
 
@@ -25,6 +25,7 @@ total_sent = 0
 
 total_rev_errors = 0
 total_rev = 0
+received_buf = []
 
 
 def open_serial_port():
@@ -39,7 +40,9 @@ def open_serial_port():
 
 def send_serial(s : serial.Serial):
     N0 = len(A)
-    N1 = s.write(A)
+    b_str = bytearray()
+    b_str.extend(map(ord, A))
+    N1 = s.write(b_str)
     if N0 != N1: raise Exception('sent %d of %d octets' % (N1, N0))
     return A
 
@@ -81,14 +84,17 @@ async def uart_terminal():
     def handle_rx(_: BleakGATTCharacteristic, data: bytearray):
         global total_rev_errors
         global total_rev
-        N1 = len(sentA)
-        B = data.decode("utf-8")
-        N2 = len(B)
-        if N1 != N2: raise Exception('received(BLE) %d of %d octets' % (N2, N1))
-        for a, b in zip(sentA, B):
-            if a != b: total_rev_errors += 1
-        total_rev += N1
-        ble_rev_event.set()
+        global received_buf
+        # since we will not receive one indicator, since BLE will buffer from UART
+        received_buf.extend(data.decode("utf-8"))
+        #print(', '.join('{:02x}'.format(x) for x in data))
+        N1 = len(sent_A)        
+        if(len(received_buf) == N1):
+            B = received_buf
+            for a, b in zip(sent_A, B):
+                if a != b: total_rev_errors += 1
+            total_rev += N1
+            ble_rev_event.set()
 
     device = await BleakScanner.find_device_by_filter(match_nus_uuid)
 
@@ -97,13 +103,12 @@ async def uart_terminal():
         sys.exit(1)
 
     async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
-
+        global sent_A
         print("Connected, Bluetooth Device")
 
         await client.start_notify(UART_CHAR_UUID, handle_rx)
         ble_rev_event = asyncio.Event()
         print("Start notify monitor")
-
 
         s = open_serial_port()
         print("Opened Serial Port")
@@ -114,11 +119,11 @@ async def uart_terminal():
         try:
             for i in range(TRIALS):
                 await send_bt_receive_serial(s, rx_char, client)
-                sentA = send_serial(s)
+                sent_A = send_serial(s)
                 await ble_rev_event.wait()
                 ble_rev_event.clear()
                 print('Count:', i)
-                # send_serial_receive_bt
+                received_buf.clear()
 
             ber = float(total_errors)/float(total_sent)
             print('%d/%d = %f Receive BER' % (total_errors,total_sent,ber))
@@ -131,7 +136,7 @@ async def uart_terminal():
             print('failed on test %d of %d with N=%d' % (i+1, TRIALS, N))
         finally:
             s.close()
-            client.stop_notify(UART_CHAR_UUID)
+            await client.stop_notify(UART_CHAR_UUID)
             #client.disconnect()
 
 if __name__ == "__main__":
