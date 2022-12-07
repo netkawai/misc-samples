@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html> 
+<html> 
+<head> 
+<script type="text/javascript"> 
+// Declare Commna Class object 
+var Common = function() { 
+     return new Common.fn.init(); 
+} 
+// pattern 
+Common.fn = Common.prototype = 
+{ 
+     constructor: Common 
+}; 
+ 
+(function(){ 
+//  real constructor 
+     var init = Common.fn.init = function() 
+     { 
+          // public/private instance value 
+          this.value = 0; 
+          return this; 
+     }; 
+ 
+// static private instance : the same value within instances 
+     var staticVal = 0; 
+ 
+// public method 
+     Common.fn.get = function() 
+          { 
+               return value; 
+          }; 
+     Common.fn.set = function(val) 
+          { 
+               staticVal = val; 
+               this.value = val; 
+          }; 
+     Common.fn.logout = function() 
+          { 
+               if(window.console) 
+               { 
+               // static 
+               window.console.log(staticVal); 
+               // non-static 
+               window.console.log(this.value); 
+               } 
+          }; 
+     // pattern 
+     init.prototype = Common.fn; 
+})(); 
+ 
+(function(){ 
+var local1 = new Common(); 
+local1.set(1); 
+local1.logout(); 
+var local2 = new Common(); 
+local2.set(1); 
+var local3 = new Common(); 
+local3.set(2); 
+local1.logout(); 
+})(); 
+ 
+</script> 
+</head> 
+<body> 
+</body> 
+</html> 
+ 
+<!-- 
+ 
+result 
+1 
+1 
+2 : because of static,  local3.set(2)  
+1 : non-static keep local1 value. 
+-->

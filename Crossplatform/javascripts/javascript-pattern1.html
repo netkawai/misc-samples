@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html> 
+<html> 
+<head> 
+<script type="text/javascript"> 
+// Declare Commna Class object 
+var Common = (function() { 
+     function Common() { 
+          // public/private instance value 
+          this.value = 0; 
+          this._TestProp = 0; 
+     } 
+     // static private instance : the same value within instances 
+     var staticVal = 0; 
+     var fn = Common.prototype; 
+     // public instance method 
+     fn.getValue = function() 
+     { 
+               return value; 
+     }; 
+     fn.SetValue =  function(val) 
+     { 
+               staticVal = val; 
+               this.value = val; 
+      }; 
+      fn.Logout  =  function() { 
+               if(window.console) 
+               { 
+               // static 
+               window.console.log(staticVal); 
+               // non-static 
+               window.console.log(this.value); 
+               } 
+       }; 
+       // static val (can not overwrite and not inheritable) 
+       Common.staticMethod = function(){ 
+               return staticVal; 
+       } 
+       // property define. 
+       Object.defineProperty(Common.prototype,"Value", { 
+               get: function() { 
+                    return this._TestProperty; 
+               }, 
+               set : function(value){ 
+                    this._TestProperty = value; 
+               } 
+               enumerable: true; 
+               configurable: true 
+     }); 
+     return Common;      
+})(); 
+ 
+(function(){ 
+// importance is new for instantiation
+var local1 = new Common(); 
+local1.SetValue(1); 
+local1.Logout(); 
+var local2 = new Common(); 
+local2.SetValue(1); 
+var local3 = new Common(); 
+local3.SetValue(2); 
+local1.Logout(); 
+})(); 
+ 
+</script> 
+</head> 
+<body> 
+</body> 
+</html> 
