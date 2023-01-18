@@ -1,3 +1,2 @@
 #/bin/sh
-export -n DISPLAY
-/home/kawai/vscode/scripts/code.sh --enable-features=UseOzonePlatform --ozone-platform=wayland $@
+./scripts/code.sh --enable-features=UseOzonePlatform --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations $@
