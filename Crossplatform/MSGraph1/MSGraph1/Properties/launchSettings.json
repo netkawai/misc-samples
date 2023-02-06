@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "MSGraph1": {
-      "commandName": "Project",
-      "commandLineArgs": "\"somethinguploadfile\""
-    }
-  }
-}
