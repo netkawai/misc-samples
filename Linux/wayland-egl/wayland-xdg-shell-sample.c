@@ -1,5 +1,6 @@
 ﻿// cc -o wayland-xdg-shell-sample wayland-xdg-shell-sample.c xdg-shell-protocol.c -lwayland-client -lrt
 #define _POSIX_C_SOURCE 200112L
+#include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -123,16 +124,20 @@ draw_frame(struct client_state *state)
     return buffer;
 }
 
+static int xdg_surface_initialized = 0;
 static void
 xdg_surface_configure(void *data,
         struct xdg_surface *xdg_surface, uint32_t serial)
 {
     struct client_state *state = data;
+    printf("xdg_surface_configure is called\n");
     xdg_surface_ack_configure(xdg_surface, serial);
 
     struct wl_buffer *buffer = draw_frame(state);
     wl_surface_attach(state->wl_surface, buffer, 0, 0);
     wl_surface_commit(state->wl_surface);
+    
+    xdg_surface_initialized = 1;
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {
@@ -195,9 +200,16 @@ main(int argc, char *argv[])
     xdg_surface_add_listener(state.xdg_surface, &xdg_surface_listener, &state);
     state.xdg_toplevel = xdg_surface_get_toplevel(state.xdg_surface);
     xdg_toplevel_set_title(state.xdg_toplevel, "Example client");
-    wl_surface_commit(state.wl_surface);
 
-    while (wl_display_dispatch(state.wl_display)) {
+    wl_surface_commit(state.wl_surface);
+    
+    while (wl_display_dispatch(state.wl_display) != -1) {
+        if(!xdg_surface_initialized)
+            break;
+    }
+    while (1) {
+        //printf("dispatched return");
+        wl_display_dispatch_pending( state.wl_display );
         /* This space deliberately left blank */
     }
 

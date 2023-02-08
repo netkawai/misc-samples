@@ -1,32 +1,6 @@
-// gcc -o wayland-egl wayland-egl.c -lwayland-client -lwayland-egl -lEGL -lGL
-// client-side decoration came from https://github.com/christianrauch/wayland_window_decoration_example for client-side decoration.
-/*
- * Copyright (C) 1999-2001  Brian Paul   All Rights Reserved.
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * BRIAN PAUL BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
- * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
-/*
- * Ported to WAYLAND/EGL/GL with CSD
- * Kawai 2023-02-06
- */
-
+// Try XDG Shell and EGL together 
 // POSIX
+#define _POSIX_C_SOURCE 200112L
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
@@ -35,7 +9,6 @@
 // Linux specific
 #include <linux/input.h>
 
-// GL/EGL
 #include <EGL/egl.h>
 #include <GL/gl.h>
 
@@ -49,21 +22,12 @@
 #define WIDTH 256
 #define HEIGHT 256
 
-static struct wl_display* display;
-static struct wl_compositor* compositor = NULL;
-static struct wl_seat *seat = NULL;
-static struct wl_shm *shm = NULL;
-static struct wl_cursor_theme *cursor_theme = NULL;
-static struct wl_surface *cursor_surface = NULL;
-
-static struct wl_subcompositor *subcompositor = NULL;
-
-static struct xdg_wm_base *xdg_wm_base = NULL;
-static struct xwl_shell* shell = NULL;
 
 static _Bool running = True;
 
 
+
+#if 0
 struct csd_button {
     struct wl_surface *surface;
     struct wl_subsurface *subsurface;
@@ -249,15 +213,28 @@ static void decoration_draw(struct csd_decoration *target) {
     eglSwapBuffers(target->egl_display, target->egl_surface);
 }
 
+#endif
 
-
-struct app_window {
+/* Wayland code */
+struct client_state {
+    /* Globals */
+    struct wl_display *wl_display;
+    struct wl_registry *wl_registry;
+    struct wl_shm *wl_shm;
+    struct wl_compositor *wl_compositor;
+    struct xdg_wm_base *xdg_wm_base;
+    struct wl_cursor_theme *cursor_theme;
+    struct wl_subcompositor *wl_subcompositor;
+    /* Global GL/EGL */
     EGLDisplay egl_display;
-    EGLContext egl_context;
-    struct wl_surface *surface;
+
+    /* Objects */
+    struct wl_surface *wl_surface;
     struct xdg_surface *xdg_surface;
     struct xdg_toplevel *xdg_toplevel;
-    struct wl_egl_window *egl_window;
+    struct wl_egl_window *wl_egl_window;
+    /* Objects GL/EGL**/
+    EGLContext egl_context;
     EGLSurface egl_surface;
 
     struct wl_keyboard *wl_keyboard;
@@ -265,20 +242,22 @@ struct app_window {
     
     int width;
     int height;
-    uint border_size;
-    uint title_size;
+    unsigned int border_size;
+    unsigned int title_size;
 
     _Bool maximized;
+#if 0
     struct csd_decoration decorations[9]; // corresponding to resize_cursor
     struct csd_button buttons[3]; // number of button_type
-
+#endif
     _Bool button_pressed;
-    struct wl_surface * current_surface;    // last entered surface
+    struct wl_surface * wl_current_surface;    // last entered surface
 
     _Bool inhibit_motion;
+
 };
 
-
+#if 0
 // listeners for seat (input)
 static void pointer_enter (void *data, struct wl_pointer *pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
     struct app_window *w = (struct app_window*)(data);
@@ -407,28 +386,30 @@ static const struct wl_seat_listener seat_listener = {
        .name = wl_seat_name,
 };
 //
+#endif
 
-
-static void delete_window( struct app_window* window )
+static void delete_window( struct client_state* state )
 {
-    eglDestroySurface( window->egl_display, window->egl_surface );
-    wl_egl_window_destroy( window->egl_window );
-    //wl_shell_surface_destroy( window->shell_surface );
-     if(xdg_wm_base) {
-        xdg_toplevel_destroy(window->xdg_toplevel);
-        xdg_surface_destroy(window->xdg_surface);
+    eglDestroySurface( state->egl_display, state->egl_surface );
+    wl_egl_window_destroy( state->wl_egl_window );
+#if 0
+    wl_shell_surface_destroy( state->shell_surface );
+#endif
+     if(state->xdg_wm_base) {
+        xdg_toplevel_destroy(state->xdg_toplevel);
+        xdg_surface_destroy(state->xdg_surface);
     }
-    wl_surface_destroy( window->surface );
-    eglDestroyContext( window->egl_display, window->egl_context );
+    wl_surface_destroy( state->wl_surface );
+    eglDestroyContext( state->egl_display, state->egl_context );
 }
 
-static void window_resize(struct app_window *window, const int width, const int height, _Bool full) {
+static void window_resize( struct client_state* state, const int width, const int height, _Bool full) {
 //    std::cout << "config " << width << " " << height << std::endl;
     // main surface with from full surface
     int main_w, main_h;
     if(full) {
-        main_w = width-2*window->border_size;
-        main_h = height-2*window->border_size-window->title_size;
+        main_w = width-2*state->border_size;
+        main_h = height-2*state->border_size-state->title_size;
 //        std::cout << "new size " << main_w << " " << main_h << std::endl;
     }
     else {
@@ -442,19 +423,22 @@ static void window_resize(struct app_window *window, const int width, const int 
     main_h = C_MAX(main_h, 50);
 
     // resize main surface
-    wl_egl_window_resize(window->egl_window, main_w, main_h, 0, 0);
+    // >>
+    //wl_egl_window_resize(window->egl_window, main_w, main_h, 0, 0);
 
     // resize all decoration elements
+#if 0
     for(int i = 0 ; i < num_of_decorations ; i++) { 
         decoration_resize(&window->decorations[i],main_w,main_h); 
     }
+#endif
 }
 
 static int had_displayed = 0;
 
-static void draw_window( struct app_window* window )
+static void draw_window( struct client_state* state )
 {
-    eglMakeCurrent(window->egl_display, window->egl_surface, window->egl_surface, window->egl_context);
+    eglMakeCurrent(state->egl_display, state->egl_surface, state->egl_surface, state->egl_context);
 
    if(had_displayed == 0)
    {
@@ -476,13 +460,10 @@ static void draw_window( struct app_window* window )
    }
 
     /* Here event loop I believe */
-#if 0
-    draw_gear_loop();
-#endif
 
     glClearColor( 0.0, 1.0, 0.0, 1.0 );
     glClear( GL_COLOR_BUFFER_BIT );
-    eglSwapBuffers( window->egl_display, window->egl_surface );
+    eglSwapBuffers( state->egl_display, state->egl_surface );
 #if 0
      // draw all decoration elements
     for(int i = 0 ; i < num_of_decorations ; i++) { 
@@ -527,11 +508,13 @@ static struct wl_shell_surface_listener shell_surface_listener =
 #endif
 
 // XDG top level
+static _Bool xdg_surface_initialized = False;
 static void xdg_surface_handle_configure(void *data,
         struct xdg_surface *xdg_surface, uint32_t serial) {
 
-    fprintf(stderr,"xdg_surface_configure");
+    printf("xdg_surface_configure is called");
     xdg_surface_ack_configure(xdg_surface, serial);
+    xdg_surface_initialized = True;
 }
 
 static struct xdg_surface_listener xdg_surface_listener = {
@@ -541,8 +524,8 @@ static struct xdg_surface_listener xdg_surface_listener = {
 void xdg_toplevel_handle_configure(void *data, struct xdg_toplevel *xdg_toplevel, int32_t width, int32_t height, struct wl_array *states) {
     if (width==0 || height==0)
         return;
-    struct app_window *window = (struct app_window*)(data);
-    window_resize(window, width, height, True);
+    struct client_state *state = (struct client_state*)(data);
+    window_resize(state, width, height, True);
 }
 
 static void xdg_toplevel_handle_close(void *data, struct xdg_toplevel *xdg_toplevel) {
@@ -562,52 +545,52 @@ static const struct xdg_wm_base_listener xdg_wm_base_listener = {
     .ping = xdg_wm_base_ping
 };
 
-static void create_window( struct app_window* window, int32_t width, int32_t height )
+static void create_window( struct client_state* state, int32_t width, int32_t height )
 {
-    const uint border_size = 5;
-    const uint title_size = 15;
+    const unsigned int border_size = 5;
+    const unsigned int title_size = 15;
 
     eglBindAPI( EGL_OPENGL_API );
     EGLint attributes[] = {EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8, EGL_NONE};
     EGLConfig config;
     EGLint num_config;
-    eglChooseConfig( window->egl_display, attributes, &config, 1, &num_config );
-    window->egl_context = eglCreateContext( window->egl_display, config, EGL_NO_CONTEXT, NULL );
+    eglChooseConfig( state->egl_display, attributes, &config, 1, &num_config );
+    state->egl_context = eglCreateContext( state->egl_display, config, EGL_NO_CONTEXT, NULL );
 
-    window->width = width;
-    window->height = height;
-    window->border_size = border_size;
-    window->title_size = title_size;
+    state->width = width;
+    state->height = height;
+    state->border_size = border_size;
+    state->title_size = title_size;
 
-    window->surface = wl_compositor_create_surface( compositor );
+    state->wl_surface = wl_compositor_create_surface( state->wl_compositor );
 
-    if(True) {
-        window->xdg_surface = xdg_wm_base_get_xdg_surface(xdg_wm_base, window->surface);
-        xdg_surface_add_listener(window->xdg_surface, &xdg_surface_listener, window);
+    if(state->xdg_wm_base) {
+        state->xdg_surface = xdg_wm_base_get_xdg_surface(state->xdg_wm_base, state->wl_surface);
+        xdg_surface_add_listener(state->xdg_surface, &xdg_surface_listener, state);
 
-        wl_display_roundtrip( display );
+        state->xdg_toplevel = xdg_surface_get_toplevel(state->xdg_surface);
+        xdg_toplevel_add_listener(state->xdg_toplevel, &xdg_toplevel_listener, state);
 
-        window->xdg_toplevel = xdg_surface_get_toplevel(window->xdg_surface);
-        xdg_toplevel_add_listener(window->xdg_toplevel, &xdg_toplevel_listener, window);
-
-        xdg_toplevel_set_title(window->xdg_toplevel, "wayland-egl-gear");
-        xdg_toplevel_set_app_id(window->xdg_toplevel, "wayland-egl-gear");
-
-
+        xdg_toplevel_set_title(state->xdg_toplevel, "wayland-egl-xdg-shell");
+        //xdg_toplevel_set_app_id(state->xdg_toplevel, "wayland-egl-gear");
     }
     else {
         fprintf(stderr, "no xdg_wm_base\n");
 #if 0
-    window->shell_surface = wl_shell_get_shell_surface( shell, window->surface );
-    wl_shell_surface_add_listener( window->shell_surface, &shell_surface_listener, window );
-    wl_shell_surface_set_toplevel( window->shell_surface );
+        window->shell_surface = wl_shell_get_shell_surface( shell, window->surface );
+        wl_shell_surface_add_listener( window->shell_surface, &shell_surface_listener, window );
+        wl_shell_surface_set_toplevel( window->shell_surface );
 #endif
+    }
 
+    if(state->wl_shm)
+    {
+        state->cursor_theme = wl_cursor_theme_load(NULL, 32, state->wl_shm);
     }
 
 
-    window->egl_window = wl_egl_window_create( window->surface, width, height );
-    window->egl_surface = eglCreateWindowSurface( window->egl_display, config, window->egl_window, NULL );
+    state->wl_egl_window = wl_egl_window_create( state->wl_surface, width, height );
+    state->egl_surface = eglCreateWindowSurface( state->egl_display, config, state->wl_egl_window, NULL );
 #if 0
     for(int i = 0 ; i < num_of_decorations ; i ++)
     {
@@ -633,12 +616,13 @@ static void registry_add_object
     uint32_t version
     )
 {
+    struct client_state *state = data;
     if( !strcmp( interface, "wl_compositor" ) )
     {
-        compositor = wl_registry_bind( registry, name, &wl_compositor_interface, 1 );
+        state->wl_compositor = wl_registry_bind( registry, name, &wl_compositor_interface, version );
     }
     else if (!strcmp(interface, "wl_subcompositor")) {
-        subcompositor = wl_registry_bind(registry, name, &wl_subcompositor_interface, 1);
+        state->wl_subcompositor = wl_registry_bind(registry, name, &wl_subcompositor_interface, version);
     }
 #if 0
     else if (!strcmp(interface,"wl_seat")) 
@@ -647,21 +631,13 @@ static void registry_add_object
         wl_seat_add_listener (seat, &seat_listener, data);
     }
 #endif
-#if 0
     else if (!strcmp(interface, "wl_shm")) {
-        shm = wl_registry_bind(registry, name, &wl_shm_interface, version);
-        cursor_theme = wl_cursor_theme_load(NULL, 32, shm);
+        state->wl_shm = wl_registry_bind(registry, name, &wl_shm_interface, version);
     }
-#endif
     else if (!strcmp(interface, xdg_wm_base_interface.name)) {
-        xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, version);
-        xdg_wm_base_add_listener(xdg_wm_base, &xdg_wm_base_listener, data);
+        state->xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, version);
+        xdg_wm_base_add_listener(state->xdg_wm_base, &xdg_wm_base_listener, data);
     }    
-    else if( !strcmp( interface, "wl_shell" ) )
-    {
-        shell = wl_registry_bind( registry, name, &wl_shell_interface, 1 );
-    }
-
 }
 
 static void registry_remove_object( void* data, struct wl_registry* registry, uint32_t name )
@@ -679,259 +655,48 @@ static struct wl_registry_listener registry_listener =
 
 int main()
 {
-    display = wl_display_connect( NULL );
 
-    if(!display) {
+    struct client_state state = { 0 };
+     state.wl_display = wl_display_connect( NULL );
+
+    if(!state.wl_display) {
         fprintf(stderr, "cannot connect to Wayland server\n");
         return -1;
     }
 
-    struct app_window window;
-    memset(&window,0,sizeof(struct app_window));
 
-    struct wl_registry* registry = wl_display_get_registry( display );
-    wl_registry_add_listener( registry, &registry_listener, &window );
+    state.wl_registry = wl_display_get_registry( state.wl_display );
+    wl_registry_add_listener( state.wl_registry, &registry_listener, &state );
 
     // This call the attached listener global_registry_handler
-    wl_display_roundtrip( display );
+    wl_display_roundtrip( state.wl_display );
 
-    window.egl_display = eglGetDisplay( display );
-    eglInitialize( window.egl_display, NULL, NULL );
+    state.egl_display = eglGetDisplay( state.wl_display );
+    eglInitialize( state.egl_display, NULL, NULL );
 
-    create_window( &window, WIDTH, HEIGHT );
+    create_window( &state, WIDTH, HEIGHT );
+
+    wl_surface_commit(state.wl_surface);
+
+    // XXX wl_display_dispatch_pending does not dispatch 
+    // xdg_surface configure call back (unknown reason)
+    // so use wl_display_dispatch in WSL2 
+    while (wl_display_dispatch(state.wl_display) != -1) {
+        if(xdg_surface_initialized)
+            break;
+    }
 
     while( running )
     {
-        wl_display_dispatch_pending( display );
-        draw_window( &window );
+        wl_display_dispatch_pending( state.wl_display );
+        draw_window( &state );
     }
 
-    delete_window( &window );
-    eglTerminate( window.egl_display );
-    wl_display_disconnect( display );
+    delete_window( &state );
+    eglTerminate( state.egl_display );
+    wl_display_disconnect( state.wl_display );
     return 0;
 }
 
 
 
-/* Gears */
-#if 0
-#ifndef M_PI
-#define M_PI 3.14159265
-#endif
-
-
-static void
-draw_gear_loop()
-{
-    static int frames = 0;
-    static double tRot0 = -1.0, tRate0 = -1.0;
-    double dt, t = current_time();
-    if (tRot0 < 0.0)
-    tRot0 = t;
-    dt = t - tRot0;
-    tRot0 = t;
-
-    /* advance rotation for next frame */
-    angle += 70.0 * dt;  /* 70 degrees per second */
-    if (angle > 3600.0)
-        angle -= 3600.0;
-
-    switch (surface_type) 
-    {
-        case GEARS_WINDOW:
-            draw();
-            eglSwapBuffers(eman->dpy, eman->win);
-        break;
-
-	    case GEARS_PBUFFER:
-	        draw();
-	        if (!eglCopyBuffers(eman->dpy, eman->pbuf, eman->xpix))
-	            break;
-	        copy_gears(eman, w, h, window_w, window_h);
-	    break;
-
-    	case GEARS_PBUFFER_TEXTURE:
-            eglMakeCurrent(eman->dpy, eman->pbuf, eman->pbuf, eman->ctx);
-	        draw();
-	        texture_gears(eman, surface_type);
-	    break;
-
-	    case GEARS_PIXMAP:
-	        draw();
-	        copy_gears(eman, w, h, window_w, window_h);
-	    break;
-
-	    case GEARS_PIXMAP_TEXTURE:
-            eglMakeCurrent(eman->dpy, eman->pix, eman->pix, eman->ctx);
-	        draw();
-	        texture_gears(eman, surface_type);
-	    break;
-
-	    case GEARS_RENDERBUFFER:
-	        glBindFramebuffer(GL_FRAMEBUFFER_EXT, eman->fbo);
-	        draw();
-	        glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
-	        texture_gears(eman, surface_type);
-	    break;
-    }
-
-    frames++;
-
-    if (tRate0 < 0.0)
-        tRate0 = t;
-    
-    if (t - tRate0 >= 5.0) 
-    {
-        GLfloat seconds = t - tRate0;
-        GLfloat fps = frames / seconds;
-        printf("%d frames in %3.1f seconds = %6.3f FPS\n", frames, seconds,
-                fps);
-        tRate0 = t;
-        frames = 0;
-    }
-}
-
-
-static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
-static GLint gear1, gear2, gear3;
-static GLfloat angle = 0.0;
-
-/*
- *
- *  Draw a gear wheel.  You'll probably want to call this function when
- *  building a display list since we do a lot of trig here.
- * 
- *  Input:  inner_radius - radius of hole at center
- *          outer_radius - radius at center of teeth
- *          width - width of gear
- *          teeth - number of teeth
- *          tooth_depth - depth of tooth
- */
-static void
-gear(GLfloat inner_radius, GLfloat outer_radius, GLfloat width,
-     GLint teeth, GLfloat tooth_depth)
-{
-   GLint i;
-   GLfloat r0, r1, r2;
-   GLfloat angle, da;
-   GLfloat u, v, len;
-
-   r0 = inner_radius;
-   r1 = outer_radius - tooth_depth / 2.0;
-   r2 = outer_radius + tooth_depth / 2.0;
-
-   da = 2.0 * M_PI / teeth / 4.0;
-
-   glShadeModel(GL_FLAT);
-
-   glNormal3f(0.0, 0.0, 1.0);
-
-   /* draw front face */
-   glBegin(GL_QUAD_STRIP);
-   for (i = 0; i <= teeth; i++) {
-      angle = i * 2.0 * M_PI / teeth;
-      glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
-      glVertex3f(r1 * cos(angle), r1 * sin(angle), width * 0.5);
-      if (i < teeth) {
-	 glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
-	 glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
-		    width * 0.5);
-      }
-   }
-   glEnd();
-
-   /* draw front sides of teeth */
-   glBegin(GL_QUADS);
-   da = 2.0 * M_PI / teeth / 4.0;
-   for (i = 0; i < teeth; i++) {
-      angle = i * 2.0 * M_PI / teeth;
-
-      glVertex3f(r1 * cos(angle), r1 * sin(angle), width * 0.5);
-      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), width * 0.5);
-      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
-		 width * 0.5);
-      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
-		 width * 0.5);
-   }
-   glEnd();
-
-   glNormal3f(0.0, 0.0, -1.0);
-
-   /* draw back face */
-   glBegin(GL_QUAD_STRIP);
-   for (i = 0; i <= teeth; i++) {
-      angle = i * 2.0 * M_PI / teeth;
-      glVertex3f(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
-      glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
-      if (i < teeth) {
-	 glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
-		    -width * 0.5);
-	 glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
-      }
-   }
-   glEnd();
-
-   /* draw back sides of teeth */
-   glBegin(GL_QUADS);
-   da = 2.0 * M_PI / teeth / 4.0;
-   for (i = 0; i < teeth; i++) {
-      angle = i * 2.0 * M_PI / teeth;
-
-      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
-		 -width * 0.5);
-      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
-		 -width * 0.5);
-      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), -width * 0.5);
-      glVertex3f(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
-   }
-   glEnd();
-
-   /* draw outward faces of teeth */
-   glBegin(GL_QUAD_STRIP);
-   for (i = 0; i < teeth; i++) {
-      angle = i * 2.0 * M_PI / teeth;
-
-      glVertex3f(r1 * cos(angle), r1 * sin(angle), width * 0.5);
-      glVertex3f(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
-      u = r2 * cos(angle + da) - r1 * cos(angle);
-      v = r2 * sin(angle + da) - r1 * sin(angle);
-      len = sqrt(u * u + v * v);
-      u /= len;
-      v /= len;
-      glNormal3f(v, -u, 0.0);
-      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), width * 0.5);
-      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), -width * 0.5);
-      glNormal3f(cos(angle), sin(angle), 0.0);
-      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
-		 width * 0.5);
-      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
-		 -width * 0.5);
-      u = r1 * cos(angle + 3 * da) - r2 * cos(angle + 2 * da);
-      v = r1 * sin(angle + 3 * da) - r2 * sin(angle + 2 * da);
-      glNormal3f(v, -u, 0.0);
-      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
-		 width * 0.5);
-      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
-		 -width * 0.5);
-      glNormal3f(cos(angle), sin(angle), 0.0);
-   }
-
-   glVertex3f(r1 * cos(0), r1 * sin(0), width * 0.5);
-   glVertex3f(r1 * cos(0), r1 * sin(0), -width * 0.5);
-
-   glEnd();
-
-   glShadeModel(GL_SMOOTH);
-
-   /* draw inside radius cylinder */
-   glBegin(GL_QUAD_STRIP);
-   for (i = 0; i <= teeth; i++) {
-      angle = i * 2.0 * M_PI / teeth;
-      glNormal3f(-cos(angle), -sin(angle), 0.0);
-      glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
-      glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
-   }
-   glEnd();
-}
-#endif

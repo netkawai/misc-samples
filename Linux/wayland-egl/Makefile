@@ -3,15 +3,15 @@ LD=gcc
 RM=rm
 INSTALL=install
 
-OUTPUT=wayland-egl-gear
+OUTPUT=wayland-egl-xdg-shell
 OUTPUT_PATH=.
 INSTALL_PATH=/usr/local/bin/
-OBJECTS=$(SRC_PATH)/wayland-egl-gear.o $(SRC_PATH)/xdg-shell-protocol.o
+OBJECTS=$(SRC_PATH)/wayland-egl-xdg-shell.o $(SRC_PATH)/xdg-shell-protocol.o
 
 SRC_PATH=.
 
 CFLAGS=-g -Wall -D_FILE_OFFSET_BITS=64 `pkg-config --cflags wayland-client wayland-cursor wayland-egl egl gl` 
-LDFLAGS=`pkg-config --libs wayland-client wayland-cursor wayland-egl egl gl`
+LDFLAGS=-lrt `pkg-config --libs wayland-client wayland-cursor wayland-egl egl gl`
 
 .PHONY: all
 
