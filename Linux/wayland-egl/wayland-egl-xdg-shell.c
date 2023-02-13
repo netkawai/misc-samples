@@ -19,6 +19,14 @@
 
 #include "xdg-shell-client-protocol.h"
 
+#ifndef True
+#define True 1
+#endif
+
+#ifndef False
+#define False 0
+#endif
+
 #define WIDTH 256
 #define HEIGHT 256
 
@@ -569,7 +577,7 @@ static void create_window( struct client_state* state, int32_t width, int32_t he
         xdg_surface_add_listener(state->xdg_surface, &xdg_surface_listener, state);
 
         state->xdg_toplevel = xdg_surface_get_toplevel(state->xdg_surface);
-        xdg_toplevel_add_listener(state->xdg_toplevel, &xdg_toplevel_listener, state);
+        //xdg_toplevel_add_listener(state->xdg_toplevel, &xdg_toplevel_listener, state);
 
         xdg_toplevel_set_title(state->xdg_toplevel, "wayland-egl-xdg-shell");
         //xdg_toplevel_set_app_id(state->xdg_toplevel, "wayland-egl-gear");
@@ -619,7 +627,7 @@ static void registry_add_object
     struct client_state *state = data;
     if( !strcmp( interface, "wl_compositor" ) )
     {
-        state->wl_compositor = wl_registry_bind( registry, name, &wl_compositor_interface, version );
+        state->wl_compositor = wl_registry_bind( registry, name, &wl_compositor_interface, 4 );
     }
     else if (!strcmp(interface, "wl_subcompositor")) {
         state->wl_subcompositor = wl_registry_bind(registry, name, &wl_subcompositor_interface, version);
@@ -635,7 +643,12 @@ static void registry_add_object
         state->wl_shm = wl_registry_bind(registry, name, &wl_shm_interface, version);
     }
     else if (!strcmp(interface, xdg_wm_base_interface.name)) {
-        state->xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, version);
+	if(version != 1)
+	{
+		printf("xdg_wm_base latest version:%d\n",version);		
+		exit(-1);
+	}
+        state->xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
         xdg_wm_base_add_listener(state->xdg_wm_base, &xdg_wm_base_listener, data);
     }    
 }
@@ -674,17 +687,19 @@ int main()
     state.egl_display = eglGetDisplay( state.wl_display );
     eglInitialize( state.egl_display, NULL, NULL );
 
-    create_window( &state, WIDTH, HEIGHT );
+   create_window( &state, WIDTH, HEIGHT );
 
     wl_surface_commit(state.wl_surface);
 
-    // XXX wl_display_dispatch_pending does not dispatch 
-    // xdg_surface configure call back (unknown reason)
-    // so use wl_display_dispatch in WSL2 
-    while (wl_display_dispatch(state.wl_display) != -1) {
-        if(xdg_surface_initialized)
-            break;
-    }
+    
+        // XXX wl_display_dispatch_pending does not dispatch 
+        // xdg_surface configure call back (unknown reason)
+        // so use wl_display_dispatch in WSL2 
+        while (wl_display_dispatch(state.wl_display) != -1) {
+            if(!xdg_surface_initialized)
+                break;
+        }
+   
 
     while( running )
     {
