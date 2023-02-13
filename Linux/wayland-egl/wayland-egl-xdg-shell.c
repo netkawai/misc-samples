@@ -522,7 +522,6 @@ static void xdg_surface_handle_configure(void *data,
 
     printf("xdg_surface_configure is called");
     xdg_surface_ack_configure(xdg_surface, serial);
-    xdg_surface_initialized = True;
 }
 
 static struct xdg_surface_listener xdg_surface_listener = {
@@ -681,7 +680,6 @@ int main()
     state.wl_registry = wl_display_get_registry( state.wl_display );
     wl_registry_add_listener( state.wl_registry, &registry_listener, &state );
 
-    // This call the attached listener global_registry_handler
     wl_display_roundtrip( state.wl_display );
 
     state.egl_display = eglGetDisplay( state.wl_display );
@@ -691,14 +689,9 @@ int main()
 
     wl_surface_commit(state.wl_surface);
 
+    // This call the attached listener global_registry_handler
+    wl_display_roundtrip( state.wl_display );
     
-        // XXX wl_display_dispatch_pending does not dispatch 
-        // xdg_surface configure call back (unknown reason)
-        // so use wl_display_dispatch in WSL2 
-        while (wl_display_dispatch(state.wl_display) != -1) {
-            if(!xdg_surface_initialized)
-                break;
-        }
    
 
     while( running )
