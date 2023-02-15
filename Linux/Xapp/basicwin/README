@@ -1,7 +1,0 @@
-Volume 1 Xlib (X11)
-basicwin automake,autoconf configure
-Makefile Makefile.am,configure.in
-
-jpwin basicwin
-
-# 2021 I finally paritally deleted Japanese characters after 22 years.
