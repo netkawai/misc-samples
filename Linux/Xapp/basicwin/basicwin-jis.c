@@ -263,13 +263,16 @@ void place_text(Window win,GC gc,XFontStruct *font_info,unsigned int win_width,u
 
   font_height = font_info->ascent + font_info->descent;
 
-  XChar2b strMsb[1];
+  XChar2b strMsb[2];
   strMsb[0].byte1 = 0x24;
   strMsb[0].byte2 = 0x22;
 
+  strMsb[1].byte1 = 0x25;
+  strMsb[1].byte2 = 0x22;
+
   /* Output text, centered on each line */
   XDrawString16(display, win, gc, 20,20,strMsb
-	      ,1);
+	      ,2);
 
   XDrawString(display, win, gc, (win_width - width1)/2,
 	      font_height,

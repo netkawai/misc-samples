@@ -19,7 +19,14 @@ inc = include_directories(inc_dirs)
 
 src_basicwin = ['basicwin.c']
 
+src_basicwin_jis = ['basicwin-jis.c']
+
 executable('basicwin',
 	   src_basicwin,
+	   include_directories: inc,
+	   dependencies: basic_x11_libs)
+
+executable('basicwin-jis',
+	   src_basicwin_jis,
 	   include_directories: inc,
 	   dependencies: basic_x11_libs)
