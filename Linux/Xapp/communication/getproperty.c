@@ -1,6 +1,6 @@
 /* 
-   �ץ��ѥƥ��ˤĤ��Ƥ�setproperty.c
-   �򻲾�
+   プロパティについてはsetproperty.c
+   を参照
 */
 /*
   int XGetWindowProperty(Display *display,
@@ -15,21 +15,21 @@
 			 unsigned long *nitems_return,
 			 unsigned long *bytes_after_return,
 			 unsigned char **prop_return)
-   window�ϥǡ�������Ф�������ɥ�ID
-   property�ϼ��Ф������ץ��ѥƥ��Υ��ȥ�
-   �ǡ�����ɤ�����ɤ�������Ф�����
-   long_offset��long_length��32�ӥåȤǻ���
-   �ǡ�������Ф�����,�ץ��ѥƥ�����������
-   �ʤ�True�����Ǥʤ����,False
-   req_type���Ф������ǡ���������
-   actual_type_return�ϼ��Ф����ǡ���������
-   actual_format_return�ϼ��Ф����ǡ�����
-   ñ�̥ӥåȿ���8,16,32���֤�ޤ���
-   nitems_return�ϼ��Ф����ǡ��������ǿ�
-   bytes_after_return�ϥǡ����ΰ����������Ф���
-   ��,�Ĥ�ΥХ��ȿ�
-   prop_return�ϼ��Ф����ǡ����ؤΥݥ���
-   ���δؿ������������Success���֤�
+   windowはデータを取り出すウィンドウID
+   propertyは取り出したいプロパティのアトム
+   データをどこからどれだけ取り出すかを
+   long_offsetとlong_lengthに32ビットで指定
+   データを取り出した後,プロパティを削除したい
+   ならTrueそうでなければ,False
+   req_type取り出したいデータタイプ
+   actual_type_returnは取り出せたデータタイプ
+   actual_format_returnは取り出せたデータの
+   単位ビット数が8,16,32で返ります。
+   nitems_returnは取り出せたデータの要素数
+   bytes_after_returnはデータの一部だけ取り出した
+   時,残りのバイト数
+   prop_returnは取り出せたデータへのポインタ
+   この関数は成功するとSuccessを返す
 */
 #include <stdio.h>
 #include <X11/Xlib.h>

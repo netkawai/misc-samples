@@ -1,8 +1,8 @@
 /* 
-   ������ɥ��ˤϥץ��ѥƥ��Ȥ����ΰ褬����,
-   �����˥ǡ������Ǽ����,���Ф����Ȥ���
-   ���ޤ����ץ��ѥƥ��ϥǡ���,�ǡ�����̾��
-   �ȥ�����,�ե����ޥåȤ��鹽������ޤ�
+   ウィンドウにはプロパティという領域があり,
+   ここにデータを格納して,取り出すことがで
+   きます。プロパティはデータ,データの名前
+   とタイプ,フォーマットから構成されます
 */
 /*
   XChangeProperty(Display *display,
@@ -13,32 +13,32 @@
 		  int mode,
 		  unsigned char* data,
 		  int nelements)
-  window�ˤϳ�Ǽ���륦����ɥ�ID
-  property�ˤ��ѹ�����ץ��ѥƥ���̾����
-  ���ȥ����ꤷ�ޤ���
-  type,format�ϥǡ����μ���ȳ�Ǽ����
-  �ǡ�����ñ�̤����ӥåȤǤ��뤫�����
-  ���̤ˤ褯�Ȥ����ΤȤ���
+  windowには格納するウィンドウID
+  propertyには変更するプロパティの名前の
+  アトムを指定します。
+  type,formatはデータの種類と格納する
+  データの単位が何ビットであるかを指定
+  一般によく使われるものとして
    ------------------------------------------------
-  |���ȥ�          |�ǡ���������      |�ե����ޥå�|
+  |アトム          |データタイプ      |フォーマット|
    ------------------------------------------------
-  |XA_STRING       |ʸ����            |    8       |
+  |XA_STRING       |文字列            |    8       |
    ------------------------------------------------
-  |XA_COMPOUND_TEXT|���ܸ�ʤɤ�ʸ����|    8       |
+  |XA_COMPOUND_TEXT|日本語などの文字列|    8       |
    ------------------------------------------------
-  |XA_INTEGER      |������            |    32      |
+  |XA_INTEGER      |整数値            |    32      |
    ------------------------------------------------
-  |XA_WINDOW       |������ɥ�ID      |    32      |
+  |XA_WINDOW       |ウィンドウID      |    32      |
    ------------------------------------------------
-  |XA_PIXMAP       |�ԥå����ޥå�ID  |    32      |
+  |XA_PIXMAP       |ピックスマップID  |    32      |
    ------------------------------------------------
 
-   mode�ϥǡ������֤���������ˤ�PropModeReplace
-   ��¸�Υǡ�����������������ˤ�PropModePrepend
-   ������ɲä���ˤ�PropModeAppend�����
-   data�˳�Ǽ����ǡ��������
-   nelements�ˤ�data�����ǿ���data�ΥХ��ȿ���
-   nelements*format/8�ˤʤ�ޤ���
+   modeはデータを置き換える場合にはPropModeReplace
+   既存のデータの前に挿入するにはPropModePrepend
+   後ろに追加するにはPropModeAppendを指定
+   dataに格納するデータを指定
+   nelementsにはdataの要素数。dataのバイト数は
+   nelements*format/8になります。
 */
 #include <stdio.h>
 #include <X11/Xlib.h>

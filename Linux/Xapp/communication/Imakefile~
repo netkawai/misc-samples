@@ -1,3 +1,0 @@
-NormalProgramTarget(atom,atom.o,,,$(XLIB))
-NormalProgramTarget(setproperty,setproperty.o,,,$(XLIB))
-NormalProgramTarget(getproperty,getproperty.o,,,$(XLIB))

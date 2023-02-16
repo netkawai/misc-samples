@@ -16,15 +16,6 @@ IMPORTANT: The X11 core or xorg never had the sort of automatic font fallback me
 
 More over until 201x, it was still common to use ISO2022 or EUC-JP or Shift-JIS, non UTF-8 encoding in LC_TYPE or PO files. That makes much more difficult to adopt it. because in Japan, at that time, already popularized 3 different encodings (thanks to big cooperations and universities). Shift-JIS in business(consumer) by Microsoft/ASCII cooperation, EUC-JP by IBM Japan and universities, E-mail by ISO-2022-JP for required 7bit clean. That is the reason, https://en.wikipedia.org/wiki/Mojibake became so common and we needed to have an option to switch encoding.
 
-## Investigation fox Xt
+## Gathering X11 app sample codes (no xrender extension)
+X Terminal was true X server. THe set of protocols in X11R6(R6.3) was the last true X (the last version from X Consortium ). After Network Computing Devices was dead, the core protocol of X11 and drawing in X server also had been dead.
 
-1. When I have read this article https://keithp.com/blogs/kgames/. I ran v2.3 with cairo and fontconfig, It worked, but the layout of xmille had been broken to fit FHD(1920x1080) monitor. I think he would be using a 4k monitor. I tried spider with 2.3. It is ok. So I tried 1.0 and 1.0 ~~did not~~ worked. When I run kspider without loading X resources.
-```
-$ ./kspider -g 400x400
-Error: Widget menuBar has zero width and/or height
-```
-This indicates that the menu of Xt/Athena Widget of height becomes zero. ~~It means, they could not load font or they could not retrieve Text Height or Width in my guess. I am curious that this is Xwayland issue or the client library issue.~~ Because I did not load X resources (.ad files) before starting programs. I don't know what represent ad? Anyway, the Xkw/layout widget has y(bison/yacc) and l(lex) file to parse the X resources to specify the layout instead of hard coding in the source code. I realized that I needed to load those files with xrdb. I tried xmille with 1.0. The layout of xmille(1.0) was perfect.
-after 2000s, xorg went completely away from xorg server without making obsolete, it is annoying.
-In modern sense, X11 handles only two aspects which are window(drawsurface) management and user input, that's it. Those X resources had been obsolete, since X resources are stored in X server, and cairo is the client-side library, they are not related each other. It is quite confusing. I don't check the reason of xmille layout issue. Most likely, he did not implement scaling down cards. All cards are clipped out in xmille to fit FHD resolution.
-
-  

@@ -1,15 +1,15 @@
 /* 
-   X�Ǥ��̿�����ǡ����䥿���פ�̾�����դ��ƶ��̤��ޤ�
-   �ºݤˤϤ���̾�����б����������ͤ�Ȥ��ޤ�������
-   �����ͤ�֥��ȥ�פȸƤӤޤ� 
+   Xでは通信するデータやタイプに名前を付けて区別します
+   実際にはこの名前に対応する整数値を使います。この
+   整数値を「アトム」と呼びます 
 */
 /*
   Atom XInternAtom(Display *display,char *atom_name,Bool only_if_exists);
-  ���˥��ȥब����Ƥ���,atom_name���б����륢�ȥब�Τꤿ�����ˤ�
-  only_if_exists��True�򿷤������ȥ������������ˤ�False�����
+  既にアトムが作られていて,atom_nameに対応するアトムが知りたい時には
+  only_if_existsにTrueを新しくアトムを生成する時にはFalseを指定
 
   char *XGetAtomName(Display *display,Atom atom)
-  atom���б�����ʸ��������ޤ�
+  atomに対応する文字列を得ます
 */
 #include <stdio.h>
 #include <X11/Xlib.h>
@@ -21,12 +21,12 @@ main()
   Atom atom;
   display = XOpenDisplay(NULL);
 
-  /* XA_CUT_BUFFER0�ϴ�������ѤߤΥ��ȥ� */
+  /* XA_CUT_BUFFER0は既に定義済みのアトム */
   printf("Cut buffer 0: %s\n", XGetAtomName(display,XA_CUT_BUFFER0));
-  /* True�ʤΤǿ��������ȥ����������ʤ� */
+  /* Trueなので新しいアトムは生成されない */
   atom = XInternAtom(display,"My String", True);
   printf("Atom for custom string: %d\n",atom);
-  /* False�ʤΤǿ��������ȥब��������� */
+  /* Falseなので新しいアトムが生成される */
   atom = XInternAtom(display,"My String",False);
   printf("Atom for custom string: %d\n",atom);
 
