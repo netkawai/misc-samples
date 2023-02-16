@@ -18,7 +18,7 @@ More over until 201x, it was still common to use ISO2022 or EUC-JP or Shift-JIS,
 
 ## Investigation fox Xt
 
-1. When I have read this article https://keithp.com/blogs/kgames/. I was curious that whether I can run v1.0 or not. I knew v2.3 with cairo and fontconfig, it will work (ya it worked) in modern desktop environment (Xwayland). Behold, but v1.0 did not. When I run kreversi without command line options.
+1. When I have read this article https://keithp.com/blogs/kgames/. I was curious that whether I can run v1.0 or not. I knew v2.3 with cairo and fontconfig, it will work (ya it worked) in modern desktop environment (Xwayland). Behold, but v1.0 ~~did not~~ worked. When I run kreversi without command line options without loading X resources.
 ```
 $ ./kreversi
 Error: Shell widget kreversi has zero width and/or height
@@ -29,8 +29,8 @@ I tried with kspider
 $ ./kspider -g 400x400
 Error: Widget menuBar has zero width and/or height
 ```
-This indicates that the menu of Xt/Athena Widget of height becomes zero. It means, they could not load font or they could not retrieve Text Height or Width in my guess.
-I am curious that this is Xwayland issue or the client library issue.
-I know since American universities had(still have?) million of X Terminals and/or PC based xorg-server, they will not throw away x11 anytime soon. but it is annoying.
-In modern sense, X11 handles only two aspects which are window(drawsurface) management and user input, that's it.
+This indicates that the menu of Xt/Athena Widget of height becomes zero. ~~It means, they could not load font or they could not retrieve Text Height or Width in my guess. I am curious that this is Xwayland issue or the client library issue.~~ Because I did not load X resources (.ad files) before starting programs. I don't know what represent ad? but, the Xkw/layout widget has y(bison/yacc) and l(lex) file to parse the X resources to specify the layout instead of hard coding in program. I realized that I needed to load those files with xrdb.
+I know since American universities had(still have?) million of X Terminals and/or PC based xorg-server, they will not throw away x11 anytime soon. but after 2000, xorg went completely away from xorg server without making obsolete, it is annoying.
+In modern sense, X11 handles only two aspects which are window(drawsurface) management and user input, that's it. Those X resources became obsolete, since X resources are stored in X server, and cairo is the client-side library, they are not related each other. It is quite confusing. More over, then that ad file becomes header(including into code), of course I cannot load with xrdb (I know no meaning), then the layout has been complete broken, I am using normal 1920x1080 screen (no HiDPI), all parts are clipped out. The v1.0 is better to my eye.
+
   
