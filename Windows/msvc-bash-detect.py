@@ -24,6 +24,14 @@ def msg(text):
 def getBashPath():
     """Check if there is a bash.exe on the PATH"""
     bash = shutil.which("bash.exe")
+    if bash is None:
+        ## Search a specific path, git bash or msys bash are installed
+        bash = os.path.join(os.environ['ProgramFiles'],"Git","bin","bash.exe")
+        if not os.path.exists(bash):
+            bash = os.path.join("C:\\msys2\\bin","bash.exe")
+            if not os.path.exists(bash):
+                bash = None
+
     return bash
 
 ## From wxPython
