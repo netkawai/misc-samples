@@ -26,7 +26,7 @@ def getBashPath():
     bash = shutil.which("bash.exe")
     return bash
 
-
+## From wxPython
 def bash2dosPath(path):
     """
     Convert an absolute unix-style path to one Windows can understand.
@@ -34,6 +34,7 @@ def bash2dosPath(path):
     cygpath = shutil.which("cygpath")
     wsl = shutil.which("wsl")
 
+        
     # If we have cygwin then we can use cygpath to convert the path.
     # Note that MSYS2 (and Git Bash) now also have cygpath so this should
     # work there too.
@@ -50,15 +51,15 @@ def bash2dosPath(path):
         return path
     else:
         # Otherwise, do a simple translate and hope for the best?
-        # /c/foo --> c:/foo
-        # There's also paths like /cygdrive/c/foo or /mnt/c/foo, but in those
-        # cases cygpath or wsl should be available.
-        components = path.split("/")
-        assert (
-            components[0] == "" and len(components[1]) == 1
-        ), "Expecting a path like /c/foo"
-        path = components[1] + ":/" + "/".join(components[2:])
+        # Check at least bash.exe exists or not.
+        bash = getBashPath()
+        if bash is None:
+            raise RuntimeError('ERROR: Unable to find bash')
+
+        # run bash command
+        path = runcmd('"{}" -l -c "cygpath -w {}"'.format(bash,path))
         return path
+
 
 
 def dos2bashPath(path):
@@ -84,11 +85,12 @@ def dos2bashPath(path):
         )
         return path
     else:
-        # Otherwise, do a simple translate and hope for the best?
-        # c:/foo --> /c/foo
-        # TODO: Check this!!
-        drive, rest = os.path.splitdrive(path)
-        path = "/{}/{}".format(drive[0], rest)
+        bash = getBashPath()
+        if bash is None:
+            raise RuntimeError('ERROR: Unable to find bash')
+
+        # run bash command
+        path = runcmd('"{}" -l -c "cygpath -u {}"'.format(bash,path))
         return path
 
 
@@ -216,7 +218,7 @@ def getMSVCInfo(PYTHON, arch, set_env=False):
 def getMinGW64():
     # config.guess is the same folder
     arch = runShell(
-            "./config.guess",
+            os.path.dirname(__file__) + "./../platform-agnostic/" + "./config.guess",
             os.path.dirname(__file__),
             getOutput=True,
             echoCmd=True)
@@ -224,6 +226,10 @@ def getMinGW64():
     print(arch)
 
 if __name__ == "__main__":
+    if not isWindows:
+        print('This python is for Windows specifically')
+        sys.exit(-1)
+
     bashPath = dos2bashPath(os.path.dirname(__file__))
     print(bashPath)
 
