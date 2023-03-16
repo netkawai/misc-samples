@@ -10,97 +10,22 @@ import shutil
 import subprocess
 import platform
 
+import enum
+
 runSilently = False
+
+class BashKind(enum.Enum):
+    WSL = 1
+    CYGWIN  = 2# MSYS also
+
+
 
 isWindows = sys.platform.startswith("win")
 isDarwin = sys.platform == "darwin"
 
-
 def msg(text):
     if not runSilently:
         print(text)
-
-
-def getBashPath():
-    """Check if there is a bash.exe on the PATH"""
-    bash = shutil.which("bash.exe")
-    if bash is None:
-        ## Search a specific path, git bash or msys bash are installed
-        bash = os.path.join(os.environ['ProgramFiles'],"Git","bin","bash.exe")
-        if not os.path.exists(bash):
-            bash = os.path.join("C:\\msys2\\bin","bash.exe")
-            if not os.path.exists(bash):
-                bash = None
-
-    return bash
-
-## From wxPython
-def bash2dosPath(path):
-    """
-    Convert an absolute unix-style path to one Windows can understand.
-    """
-    cygpath = shutil.which("cygpath")
-    wsl = shutil.which("wsl")
-
-        
-    # If we have cygwin then we can use cygpath to convert the path.
-    # Note that MSYS2 (and Git Bash) now also have cygpath so this should
-    # work there too.
-    if cygpath:
-        path = runcmd(
-            '"{}" -w "{}"'.format(cygpath, path), getOutput=True, echoCmd=False
-        )
-        return path
-    elif wsl:
-        # Are we using Windows System for Linux? (untested)
-        path = runcmd(
-            '"{}" wslpath -a -w "{}"'.format(wsl, path), getOutput=True, echoCmd=False
-        )
-        return path
-    else:
-        # Otherwise, do a simple translate and hope for the best?
-        # Check at least bash.exe exists or not.
-        bash = getBashPath()
-        if bash is None:
-            raise RuntimeError('ERROR: Unable to find bash')
-
-        # run bash command
-        path = runcmd('"{}" -l -c "cygpath -w {}"'.format(bash,path))
-        return path
-
-
-
-def dos2bashPath(path):
-    """
-    Convert an absolute dos-style path to one bash.exe can understand.
-    """
-    path = path.replace("\\", "/")
-    cygpath = shutil.which("cygpath")
-    wsl = shutil.which("wsl")
-
-    # If we have cygwin then we can use cygpath to convert the path.
-    # Note that MSYS2 (and Git Bash) now also have cygpath so this should
-    # work there too.
-    if cygpath:
-        path = runcmd(
-            '"{}" -u "{}"'.format(cygpath, path), getOutput=True, echoCmd=False
-        )
-        return path
-    elif wsl:
-        # Are we using Windows System for Linux? (untested)
-        path = runcmd(
-            '"{}" wslpath -a -u "{}"'.format(wsl, path), getOutput=True, echoCmd=False
-        )
-        return path
-    else:
-        bash = getBashPath()
-        if bash is None:
-            raise RuntimeError('ERROR: Unable to find bash')
-
-        # run bash command
-        path = runcmd('"{}" -l -c "cygpath -u {}"'.format(bash,path))
-        return path
-
 
 
 def _runcmd(cmd, getOutput, echoCmd):
@@ -140,6 +65,79 @@ def _runcmd(cmd, getOutput, echoCmd):
 
     return (rval, output)
 
+def _which_in_shell(bash,cmd):
+    """
+        run which in bash.
+    """
+    if isWindows:
+        cmd = '"{}" -l -c "which {}"'.format(bash, cmd)
+    else:
+        cmd = "which %s" % (cmd)
+
+    return _runcmd(cmd,getOutput=False,echoCmd=False)
+
+def _isBashKind(bash, kind):
+    retval = 1
+
+    if not os.path.exists(bash):
+        return retval
+
+    match kind:
+        case BashKind.WSL:
+            retval, out = _which_in_shell(bash,"wslpath")
+        case _:
+            # TODO: We need to distinguish MINGW vs MSYS
+            retval, out = _which_in_shell(bash,"cygpath")
+    return retval
+
+def getBashPath(kind = None):
+    """Check if there is a bash.exe on the PATH"""
+
+    # first check under PATH
+    bash = shutil.which("bash.exe")
+    if bash:
+        retval = _isBashKind(bash, kind)
+        if retval == 0:
+            return bash
+
+    match kind:
+        case BashKind.WSL:
+            # if WSL should under PATH
+            return bash # None
+        case BashKind.CYGWIN:
+            # system path for git bash
+            bash = os.path.join(os.environ['ProgramFiles'],"Git","bin","bash.exe")
+            retval = _isBashKind(bash,kind)
+            if retval == 0:
+                return bash
+            # user path for git bash
+            bash = os.path.join(os.environ['USERPROFILE'], "AppData","Local","Git","bash.exe")
+            retval = _isBashKind(bash,kind)
+            if retval == 0:
+                return bash
+            # default msys2 path      
+            bash = os.path.join("C:\\msys2\\bin","bash.exe")
+            retval = _isBashKind(bash,kind)
+            if retval == 0:
+                return bash
+            # default cygwin path      
+            bash = os.path.join("C:\\cygwin\\bin","bash.exe")
+            retval = _isBashKind(bash,kind)
+            if retval == 0:
+                return bash
+        case _:
+            return defaultBash
+    return bash
+
+_cygwin = getBashPath(BashKind.CYGWIN)
+_wsl = getBashPath(BashKind.WSL)
+
+# Priority is CYGIN->WSL
+defaultBash = _cygwin if _cygwin else _wsl
+
+
+
+
 def runcmd(cmd, getOutput=True, echoCmd=True, fatal=True, onError=None):
 
     rval, output = _runcmd(cmd, getOutput, echoCmd)
@@ -157,7 +155,51 @@ def runcmd(cmd, getOutput=True, echoCmd=True, fatal=True, onError=None):
     return output
 
 
-def runShell(cmd, folder, arg = "", getOutput=True, echoCmd=True, fatal=True, onError=None):
+def bash2dosPath(path):
+    """
+    Convert an absolute unix-style path to one Windows can understand.
+    """
+
+    # If we have cygwin then we can use cygpath to convert the path.
+    # Note that MSYS2 (and Git Bash) now also have cygpath so this should
+    # work there too.
+
+    if defaultBash is _cygwin:
+        path = runcmd('"{}" -l -c "cygpath -w {}"'.format(defaultBash,path),getOutput=True, echoCmd=False)
+        return path
+    elif defaultBash is _wsl:
+        # Selected bash is WSL 
+        wsl = shutil.which('wsl')
+        path = runcmd('"{}" wslpath -a -w "{}"'.format(wsl,path), getOutput=True, echoCmd=False)
+    else:
+        raise RuntimeError('ERROR: Unable to find bash')
+
+    return path
+
+def dos2bashPath(path):
+    """
+    Convert an absolute dos-style path to one bash.exe can understand.
+    """
+    path = path.replace("\\", "/")
+
+    # If we have cygwin then we can use cygpath to convert the path.
+    # Note that MSYS2 (and Git Bash) now also have cygpath so this should
+    # work there too.
+    if defaultBash is _cygwin:
+        path = runcmd('"{}" -l -c "cygpath -u {}"'.format(defaultBash,path),getOutput=True, echoCmd=False)
+    elif wsl:
+        # Selected bash is WSL 
+        wsl = shutil.which('wsl')
+        path = runcmd('"{}" wslpath -a -u "{}"'.format(wsl, path), getOutput=True, echoCmd=False)
+        return path
+    else:
+        raise RuntimeError('ERROR: Unable to find bash')
+
+    return path
+
+
+
+def runshell(cmd, folder, arg = "", getOutput=True, echoCmd=True, fatal=True, onError=None):
     if isWindows:
         bash = getBashPath()
         if not bash:
@@ -225,7 +267,7 @@ def getMSVCInfo(PYTHON, arch, set_env=False):
 
 def getMinGW64():
     # config.guess is the same folder
-    arch = runShell(
+    arch = runshell(
             os.path.dirname(__file__) + "./../platform-agnostic/" + "./config.guess",
             os.path.dirname(__file__),
             getOutput=True,
@@ -238,11 +280,11 @@ if __name__ == "__main__":
         print('This python is for Windows specifically')
         sys.exit(-1)
 
-    bashPath = dos2bashPath(os.path.dirname(__file__))
+    bashPath = getBashPath()
     print(bashPath)
-
+    filePath = dos2bashPath(os.path.dirname(__file__))
+    print(filePath)
     getMinGW64()
-
 
     PYTHON = sys.executable
     getMSVCInfo(PYTHON, "x64", set_env=True)
