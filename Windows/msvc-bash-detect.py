@@ -116,7 +116,7 @@ def getBashPath(kind = None):
             if retval == 0:
                 return bash
             # default msys2 path      
-            bash = os.path.join("C:\\msys2\\bin","bash.exe")
+            bash = os.path.join("C:\\msys64\\bin","bash.exe")
             retval = _isBashKind(bash,kind)
             if retval == 0:
                 return bash
