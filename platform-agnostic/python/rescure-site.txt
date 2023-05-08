@@ -1,2 +1,0 @@
-GDAL and Fiona
-https://www.lfd.uci.edu/~gohlke/pythonlibs/
