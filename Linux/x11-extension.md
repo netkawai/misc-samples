@@ -10,3 +10,5 @@ Check weston-xwayland.c which extensions can be disabled in weston.
 
 The latest X11 protocol defitions are unified into below
 https://gitlab.freedesktop.org/xorg/proto/xorgproto
+
+https://salsa.debian.org/debian/kgames.git
