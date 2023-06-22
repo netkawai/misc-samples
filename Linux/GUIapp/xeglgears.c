@@ -29,6 +29,7 @@
  * Command line options:
  *    -info      print GL implementation information
  *
+ gcc -o xeglgeasr xeglgears.c -lX11 -lEGL -lGL -lm
  */
 
 
@@ -44,10 +45,8 @@
 #include <X11/keysym.h>
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
 #else
 #include <GL/gl.h>
-#include <GL/glu.h>
 #endif
 
 #include <EGL/egl.h>
