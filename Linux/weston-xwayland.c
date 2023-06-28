@@ -169,8 +169,10 @@ spawn_xserver(void *user_data, const char *display, int abstract_fd, int unix_fd
 	custom_env_add_arg(&child_env, "-terminate");
         custom_env_add_arg(&child_env, "-extension");
         custom_env_add_arg(&child_env, "XTEST");
+#if 0 // useful for client
 	custom_env_add_arg(&child_env, "-extension");
 	custom_env_add_arg(&child_env, "SHAPE");
+#endif
 	custom_env_add_arg(&child_env, "-extension");
 	custom_env_add_arg(&child_env, "MIT-SHM");
 	custom_env_add_arg(&child_env, "-extension");
