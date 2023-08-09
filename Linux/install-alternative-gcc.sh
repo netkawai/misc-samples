@@ -5,7 +5,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 target_priority=100
-if [-n "$2" ]; then
+if [ -n "$2" ]; then
 	target_priority=$2
 fi
 
