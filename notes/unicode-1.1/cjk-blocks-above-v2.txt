@@ -1,0 +1,29 @@
+Hangul Jamo (1100–11FF)
+
+CJK Radicals Supplement (2E80–2EFF)
+Kangxi Radicals (2F00–2FDF)
+Ideographic Description Characters (2FF0–2FFF)
+CJK Symbols and Punctuation (3000–303F)
+Hiragana (3040–309F)
+Katakana (30A0–30FF)
+Bopomofo (3100–312F)
+Hangul Compatibility Jamo (3130–318F)
+Kanbun (3190–319F)
+Bopomofo Extended (31A0–31BF)
+CJK Strokes (31C0–31EF)
+Katakana Phonetic Extensions (31F0–31FF)
+Enclosed CJK Letters and Months (3200–32FF)
+CJK Compatibility (3300–33FF)
+CJK Unified Ideographs Extension A (3400–4DBF)
+Yijing Hexagram Symbols (4DC0–4DFF)
+CJK Unified Ideographs (4E00–9FFF)
+
+Hangul Jamo Extended-A (A960–A97F)
+Hangul Syllables (AC00–D7AF)
+Hangul Jamo Extended-B (D7B0–D7FF)
+
+CJK Compatibility Ideographs (F900–FAFF)
+
+CJK Compatibility Forms (FE30–FE4F)
+
+Halfwidth and Fullwidth Forms (FF00–FFEF)

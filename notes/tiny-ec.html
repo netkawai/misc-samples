@@ -1,0 +1,394 @@
+﻿<title> Tiny ECC Demo </title> 
+
+<h1> 
+Tiny ECC Demo<br /> 
+by JavaScript (I had forgotten the original author)
+</h1> 
+
+ 
+
+<h2> 
+
+2003-12-03 
+
+</h2> 
+
+ 
+
+<!-- y^2 = x^3 + 19x + 77 on (mod 307) 
+
+The pair of points is in the range of (307+1)+-2*sqrt(307) with Hasse-Weil theorem 
+
+The order should be prime for selecting a ellitipic curves 
+
+--> 
+
+ 
+
+<script type="text/javascript"> 
+
+var mod = 307; 
+
+var a = 19; 
+
+var b = 77; 
+
+var Point = new Array(); 
+
+var index = 0; 
+
+Point[ index ] = "(0, 0)"; 
+
+ 
+
+ 
+
+for(var x = 0; x < mod; x++ ) { 
+
+    for(var y = 0; y < mod/2; y++ ) { 
+
+        var L = ( y*y ) % mod; 
+
+        var R = ( x*x*x + a*x + b ) % mod; 
+
+        if( L === R ) { 
+
+            var sPoint = "(" + x + ", " + y + ")"; 
+
+            Point[ ++index ] = sPoint; 
+
+            if( y !== 0 ) { 
+
+                 sPoint = "(" + x + ", " + (mod-y) + ")"; 
+
+                 Point[ ++index ] = sPoint; 
+
+            } 
+
+            break; 
+
+        } 
+
+    } 
+
+} 
+
+ 
+
+_debug("Point.lenght = " + Point.length); 
+
+ 
+
+document.write( "<p>" ); 
+
+for(var i=0; i<Point.length; i++) { 
+
+    document.write( "<strong>P<sub>" + i + "<\/sub><\/strong> = " + Point[i] ); 
+
+    if(i < Point.length-1 ) document.write( ", " ); 
+
+} 
+
+document.write( "<\/p>" ); 
+
+ 
+
+function _debug( str ) { 
+
+    document.write( "<p>Debug: " + str + "<\/p>"); 
+
+} 
+
+var mod = 307; 
+
+var a = 19; 
+
+var b = 77; 
+
+var Order = 331; 
+
+var Point = [ 
+
+"(0, 0)", "(0, 153)", "(0, 154)", "(1, 149)", "(1, 158)", "(6, 10)", "(6, 297)", "(7, 89)", "(7, 218)", "(8, 110)", "(8, 197)", "(10, 119)", "(10, 188)", "(12, 67)", "(12, 240)", "(13, 40)", "(13, 267)", "(14, 18)", "(14, 289)", "(15, 93)", "(15, 214)", "(16, 57)", "(16, 250)", "(17, 44)", "(17, 263)", "(20, 33)", "(20, 274)", "(23, 44)", "(23, 263)", "(24, 34)", "(24, 273)", "(27, 25)", "(27, 282)", "(28, 134)", "(28, 173)", "(29, 134)", "(29, 173)", "(30, 18)", "(30, 289)", "(31, 8)", "(31, 299)", "(37, 85)", "(37, 222)", "(38, 59)", "(38, 248)", "(39, 72)", "(39, 235)", "(40, 47)", "(40, 260)", "(43, 46)", "(43, 261)", "(45, 112)", "(45, 195)", "(49, 48)", "(49, 259)", "(52, 41)", "(52, 266)", "(53, 51)", "(53, 256)", "(54, 48)", "(54, 259)", "(55, 113)", "(55, 194)", "(56, 132)", "(56, 175)", "(57, 2)", "(57, 305)", "(58, 90)", "(58, 217)", "(59, 102)", "(59, 205)", "(60, 33)", "(60, 274)", "(65, 78)", "(65, 229)", "(67, 5)", "(67, 302)", "(69, 57)", "(69, 250)", "(70, 80)", "(70, 227)", "(72, 54)", "(72, 253)", "(73, 99)", "(73, 208)", "(75, 115)", "(75, 192)", "(76, 140)", "(76, 167)", "(79, 31)", "(79, 276)", "(80, 39)", "(80, 268)", "(81, 64)", "(81, 243)", "(82, 77)", "(82, 230)", "(83, 72)", "(83, 235)", "(84, 5)", "(84, 302)", "(87, 45)", "(87, 262)", "(88, 41)", "(88, 266)", "(90, 110)", "(90, 197)", "(92, 147)", "(92, 160)", "(93, 68)", "(93, 239)", "(94, 28)", "(94, 279)", "(97, 31)", "(97, 276)", "(99, 70)", "(99, 237)", "(104, 29)", "(104, 278)", "(106, 64)", "(106, 243)", "(108, 104)", "(108, 203)", "(109, 114)", "(109, 193)", "(115, 73)", "(115, 234)", "(116, 94)", "(116, 213)", "(117, 51)", "(117, 256)", "(119, 15)", "(119, 292)", "(120, 64)", "(120, 243)", "(125, 58)", "(125, 249)", "(126, 30)", "(126, 277)", "(127, 128)", "(127, 179)", "(130, 97)", "(130, 210)", "(131, 31)", "(131, 276)", "(132, 93)", "(132, 214)", "(136, 32)", "(136, 275)", "(137, 51)", "(137, 256)", "(141, 35)", "(141, 272)", "(143, 129)", "(143, 178)", "(145, 106)", "(145, 201)", "(146, 127)", "(146, 180)", "(147, 79)", "(147, 228)", "(148, 108)", "(148, 199)", "(149, 13)", "(149, 294)", "(150, 96)", "(150, 211)", "(151, 71)", "(151, 236)", "(156, 5)", "(156, 302)", "(157, 122)", "(157, 185)", "(159, 69)", "(159, 238)", "(160, 93)", "(160, 214)", "(162, 82)", "(162, 225)", "(167, 41)", "(167, 266)", "(168, 38)", "(168, 269)", "(169, 56)", "(169, 251)", "(170, 3)", "(170, 304)", "(173, 145)", "(173, 162)", "(175, 79)", "(175, 228)", "(176, 81)", "(176, 226)", "(177, 55)", "(177, 252)", "(179, 56)", "(179, 251)", "(180, 111)", "(180, 196)", "(181, 92)", "(181, 215)", "(182, 144)", "(182, 163)", "(185, 72)", "(185, 235)", "(186, 129)", "(186, 178)", "(187, 7)", "(187, 300)", "(189, 4)", "(189, 303)", "(190, 3)", "(190, 304)", "(192, 50)", "(192, 257)", "(196, 103)", "(196, 204)", "(199, 151)", "(199, 156)", "(201, 7)", "(201, 300)", "(203, 65)", "(203, 242)", "(204, 48)", "(204, 259)", "(207, 15)", "(207, 292)", "(209, 110)", "(209, 197)", "(210, 81)", "(210, 226)", "(211, 146)", "(211, 161)", "(212, 133)", "(212, 174)", "(214, 83)", "(214, 224)", "(216, 35)", "(216, 272)", "(220, 120)", "(220, 187)", "(221, 124)", "(221, 183)", "(222, 57)", "(222, 250)", "(223, 71)", "(223, 236)", "(225, 66)", "(225, 241)", "(226, 7)", "(226, 300)", "(227, 33)", "(227, 274)", "(228, 81)", "(228, 226)", "(233, 23)", "(233, 284)", "(234, 22)", "(234, 285)", "(235, 1)", "(235, 306)", "(236, 43)", "(236, 264)", "(237, 87)", "(237, 220)", "(239, 16)", "(239, 291)", "(240, 71)", "(240, 236)", "(247, 39)", "(247, 268)", "(249, 6)", "(249, 301)", "(250, 134)", "(250, 173)", "(251, 42)", "(251, 265)", "(254, 3)", "(254, 304)", "(257, 35)", "(257, 272)", "(261, 148)", "(261, 159)", "(263, 18)", "(263, 289)", "(264, 143)", "(264, 164)", "(265, 75)", "(265, 232)", "(266, 56)", "(266, 251)", "(267, 44)", "(267, 263)", "(271, 130)", "(271, 177)", "(273, 61)", "(273, 246)", "(274, 53)", "(274, 254)", "(275, 85)", "(275, 222)", "(276, 107)", "(276, 200)", "(278, 2)", "(278, 305)", "(279, 2)", "(279, 305)", "(282, 52)", "(282, 255)", "(284, 47)", "(284, 260)", "(285, 129)", "(285, 178)", "(287, 39)", "(287, 268)", "(288, 15)", "(288, 292)", "(290, 47)", "(290, 260)", "(292, 79)", "(292, 228)", "(294, 150)", "(294, 157)", "(297, 27)", "(297, 280)", "(300, 109)", "(300, 198)", "(301, 19)", "(301, 288)", "(302, 85)", "(302, 222)"]; 
+
+ 
+
+var ECCPoint = new Object(); 
+
+for(var i=0; i<Order; i++ ) { 
+
+     ECCPoint[ Point[i] ] = i; 
+
+ 
+
+     ECCPoint[i] = new Object(); 
+
+     ECCPoint[i].index = i; 
+
+     ECCPoint[i].coord = Point[i]; 
+
+     if( Point[i].match(/^\((\d+), (\d+)\)$/) ) { 
+
+          ECCPoint[i].x = parseInt( RegExp.$1 ); 
+
+          ECCPoint[i].y = parseInt( RegExp.$2 ); 
+
+     } else { 
+
+          _debug("ECCPoint: Init Error: " + Point[i] ); 
+
+          break; 
+
+     } 
+
+} 
+
+ 
+
+ 
+
+ 
+
+ 
+
+function fairy_add( index1, index2 ) { 
+
+ 
+
+     index1 = reduce( index1, Order ); 
+
+     index2 = reduce( index2, Order ); 
+
+ 
+
+     if(index1 === 0 ) return index2; 
+
+     else if(index2 === 0 ) return index1; 
+
+ 
+
+     var x1 = ECCPoint[index1].x; 
+
+     var y1 = ECCPoint[index1].y; 
+
+     var x2 = ECCPoint[index2].x; 
+
+     var y2 = ECCPoint[index2].y; 
+
+     if( x1 === x2 && y1 !== y2 ) { 
+
+          if( (y1+y2) % mod === 0 ) return 0; 
+
+          _debug("fairy_add: Something is wrong: " + ECCPoint[index1].coord + " : " + ECCPoint[index2].coord ); 
+
+          return void 0; 
+
+     } 
+
+     
+
+     var lambda; 
+
+     if( x1 === x2 && y1 === y2 ) { 
+
+          if( ( 2 * y1 ) % mod === 0 ) return 0; 
+
+          else lambda = ( 3*x1*x1 + a ) * rev( 2 * y1 ); 
+
+     } else { 
+
+          lambda = ( y2 - y1 ) * rev( x2 - x1 ); 
+
+     } 
+
+     
+
+     lambda %= mod; 
+
+ 
+
+     var x3 = lambda*lambda - x1 - x2; 
+
+     var y3 = lambda * (x1-x3) - y1; 
+
+     x3 = reduce( x3, mod ); 
+
+     y3 = reduce( y3, mod ); 
+
+     var sPoint = "(" + x3 + ", " + y3 + ")"; 
+
+     
+
+     if( ECCPoint[ sPoint ] === void 0 ) { 
+
+          _debug( "fairy_add failed. Dump: " + x1 + "," + y1 + "; " + x2 + "," + y2 + "; " +x3 + ", " + y3 + " : lambda=" + lambda ); 
+
+     } 
+
+     return ECCPoint[ sPoint ]; 
+
+ 
+
+} 
+
+ 
+
+function reduce( N , Mod ) { 
+
+     if( typeof N !== "number" ) { 
+
+          _debug("reduce: " + N + " is " + typeof N ); 
+
+          return void 0; 
+
+     } 
+
+     if( N >= 0 ) return N % Mod; 
+
+     var k = Math.floor( Math.abs( N ) / Mod ); 
+
+     return ( N + Mod*(k+1) ) % Mod; 
+
+} 
+
+ 
+
+function rev( N ) { 
+
+     if( typeof N !== "number" ) { 
+
+          _debug("rev: " + N + " is " + typeof N ); 
+
+          return void 0; 
+
+     } 
+
+ 
+
+     if( N % mod === 0 ) { 
+
+          _debug("rev: Bad input:" + N ); 
+
+          return void 0; 
+
+     } 
+
+     
+
+     N = reduce( N, mod ); 
+
+     
+
+     for( var i = 1; i < mod; i++ ) { 
+
+          if( N * i % mod === 1 ) return i; 
+
+     } 
+
+ 
+
+     _debug( "rev: failed for: " + N ); 
+
+     return void 0; 
+
+} 
+
+ 
+
+function _debug( str ) { 
+
+    document.write( "<p>Debug: " + str + "<\/p>"); 
+
+} 
+
+ 
+
+ 
+
+function fairy_mul( index, N ) { 
+
+     if( typeof N !== "number" ) { 
+
+          _debug("fairy_mul: " + N + " is " + typeof N ); 
+
+          return void 0; 
+
+     } 
+
+     
+
+     if( N < 0 || Math.floor(N) !== N ) { 
+
+          _debug("fairy_mul: Bad N: " + N ); 
+
+          return void 0; 
+
+     } 
+
+     
+
+     if( N === 0 ) return 0; 
+
+     else if( N === 1 ) return index; 
+
+ 
+
+     var result = index; 
+
+     for( var i=2; i<=N; i++ ) { 
+
+          result = fairy_add( result, index ); 
+
+     } 
+
+ 
+
+     return result; 
+
+} 
+
+var PubPointIndex = 8; 
+
+ 
+
+_debug("PubPoint: P" + PubPointIndex + " = " + Point[PubPointIndex]); 
+
+ 
+
+var SecKeyAlice = 75; 
+
+var MaskedKeyAlice = fairy_mul( PubPointIndex, SecKeyAlice ); 
+
+ 
+
+var SecKeyBob = 234; 
+
+var MaskedKeyBob = fairy_mul( PubPointIndex, SecKeyBob ); 
+
+ 
+
+_debug("MaskedKeyAlice: P" + MaskedKeyAlice + " = " + Point[MaskedKeyAlice]); 
+
+_debug("MaskedKeyBob: P" + MaskedKeyBob + " = " + Point[MaskedKeyBob]); 
+
+ 
+
+var KeyByAlice = fairy_mul( MaskedKeyBob, SecKeyAlice ); 
+
+var KeyByBob = fairy_mul( MaskedKeyAlice, SecKeyBob ); 
+
+ 
+
+_debug("KeyByAlice: P" + KeyByAlice + " = " + Point[KeyByAlice]); 
+
+_debug("KeyByBob: P" + KeyByBob + " = " + Point[KeyByBob]); 
+
+</script> 
+
+ 
+
+<p> 
+
+[ <a href="demo-index.html">index</a> ] 
+
+</p> 

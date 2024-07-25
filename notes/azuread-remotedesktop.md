@@ -1,0 +1,3 @@
+https://docs.microsoft.com/en-us/windows/client-management/connect-to-remote-aadj-pc
+
+Your local PC (where you are connecting from) must be either Azure AD-joined or Hybrid Azure AD-joined if using Windows 10, version 1607 and above, or Azure AD registered if using Windows 10, version 2004 and above. Remote connections to an Azure AD-joined PC from an unjoined device or a non-Windows 10 device are not supported.
