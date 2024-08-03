@@ -19,7 +19,7 @@ Yijing Hexagram Symbols (4DC0–4DFF)
 CJK Unified Ideographs (4E00–9FFF)
 
 Hangul Jamo Extended-A (A960–A97F)
-Hangul Syllables (AC00–D7AF)
+Hangul Syllables (AC00–D7AF) introduced in v2.0
 Hangul Jamo Extended-B (D7B0–D7FF)
 
 CJK Compatibility Ideographs (F900–FAFF)
