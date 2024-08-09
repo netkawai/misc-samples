@@ -1,3 +1,4 @@
+https://stackoverflow.com/questions/71871664/python-slash-testing-framework-and-vscode-debugging
 I found the solution for this.
 
 Just create this launch.json inside the .vscode folder
