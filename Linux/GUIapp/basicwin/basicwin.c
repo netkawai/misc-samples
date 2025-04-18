@@ -6,6 +6,8 @@
 
 /* Standard C include file */
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 /* Bitmap data for icon */
 #include "basicwin_icon.xbm"
@@ -28,6 +30,15 @@ int screen_num;
  * it is used in several places in application routines,not
  * just in main */
 static char *progname;
+
+
+/* prototype */
+static void TooSmall(Window win, GC gc, XFontStruct *font_info);
+static void place_graphics(Window win, GC gc, unsigned int window_width, unsigned int window_height);
+static void place_text(Window win,GC gc,XFontStruct *font_info,unsigned int win_width,unsigned int win_height);
+static XFontStruct *load_font(void);
+static void getGC(Window win, GC* gc, XFontStruct *font_info);
+
 
 void main(int argc,char **argv)
 {
@@ -136,7 +147,7 @@ void main(int argc,char **argv)
   XSelectInput(display, win, ExposureMask | KeyPressMask |
            ButtonPressMask | StructureNotifyMask);
   
-  load_font(&font_info);
+  font_info = load_font();
 
   /* Create GC for text and drawing */
   getGC(win, &gc, font_info);
@@ -194,7 +205,7 @@ void main(int argc,char **argv)
   }
 }
 
-void getGC(Window win, GC* gc, XFontStruct *font_info)
+static void getGC(Window win, GC* gc, XFontStruct *font_info)
 {
   unsigned long valuemask = 0; /* Ignore XGCvalues and
 				* use defaults */
@@ -226,20 +237,22 @@ void getGC(Window win, GC* gc, XFontStruct *font_info)
   XSetDashes(display, *gc, dash_offset, dash_list, list_length);
 }
 
-void load_font(XFontStruct **font_info)
+static XFontStruct *load_font(void)
 {
+  XFontStruct *font_info;
   char *fontname = "6x13";
 
   /* Load font and get font information structure */
-  if((*font_info = XLoadQueryFont(display,fontname)) == NULL)
+  if((font_info = XLoadQueryFont(display,fontname)) == NULL)
   {
       (void)fprintf(stderr , "%s: Cannot open 6x13 font \n",
 	       progname);
       exit(-1);
   }
+  return font_info;
 }
 
-void place_text(Window win,GC gc,XFontStruct *font_info,unsigned int win_width,unsigned int win_height)
+static void place_text(Window win,GC gc,XFontStruct *font_info,unsigned int win_width,unsigned int win_height)
 {
   char *string1 = "Hi! I'm window, who are you";
   char *string2 = "To terminamte program; Press and key";
@@ -310,7 +323,7 @@ void place_text(Window win,GC gc,XFontStruct *font_info,unsigned int win_width,u
 	      3 * font_height, cd_depth,len3);
 }
 
-void place_graphics(Window win, GC gc, unsigned int window_width, unsigned int window_height)
+static void place_graphics(Window win, GC gc, unsigned int window_width, unsigned int window_height)
 {
   int x,y;
   int width,height;
@@ -322,12 +335,12 @@ void place_graphics(Window win, GC gc, unsigned int window_width, unsigned int w
   XDrawRectangle(display,win,gc,x,y,width,height);
 }
 
-void TooSmall(Window win, GC gc, XFontStruct font_info)
+static void TooSmall(Window win, GC gc, XFontStruct * font_info)
 {
   char  *string1 = "Too Small";
   int y_offset,x_offset;
 
-  y_offset = font_info.ascent + 2;
+  y_offset = font_info->ascent + 2;
   x_offset = 2;
 
   /* Output text, centered on each line */
