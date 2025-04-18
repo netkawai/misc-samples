@@ -26,7 +26,4 @@ executable('basicwin',
 	   include_directories: inc,
 	   dependencies: basic_x11_libs)
 
-#executable('basicwin-jis',
-#	   src_basicwin_jis,
-#	   include_directories: inc,
-#	   dependencies: basic_x11_libs)
+

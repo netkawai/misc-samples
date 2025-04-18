@@ -30,7 +30,7 @@ int screen_num;
  * it is used in several places in application routines,not
  * just in main */
 static char *progname;
-
+static int isJis;
 
 /* prototype */
 static void TooSmall(Window win, GC gc, XFontStruct *font_info);
@@ -59,6 +59,14 @@ void main(int argc,char **argv)
   char *display_name = NULL; /* Server to connect to */
   
   progname = argv[0];
+
+  if(argc == 2 && argv[1][0] == 'j'){
+     printf("!! CAUTION load jis font, might not exist!!");
+     isJis = 1;
+  }else{
+     isJis = 0;
+  }
+    
 
   /* Connect to X Server */
   if((display=XOpenDisplay(display_name)) == NULL )
@@ -242,11 +250,14 @@ static XFontStruct *load_font(void)
   XFontStruct *font_info;
   char *fontname = "6x13";
 
+  if(isJis) 
+    fontname = "-misc-fixed-medium-r-normal--0-0-75-75-c-0-jisx0213.2004-1";
+
   /* Load font and get font information structure */
   if((font_info = XLoadQueryFont(display,fontname)) == NULL)
   {
-      (void)fprintf(stderr , "%s: Cannot open 6x13 font \n",
-	       progname);
+      (void)fprintf(stderr , "%s: Cannot open %s font \n",
+	       progname, fontname);
       exit(-1);
   }
   return font_info;
@@ -263,6 +274,7 @@ static void place_text(Window win,GC gc,XFontStruct *font_info,unsigned int win_
   char cd_height[50],cd_width[50],cd_depth[50];
   int font_height;
   int initial_y_offset,x_offset;
+ XChar2b strMsb[2];
 
   /* Need length for both XTextWidth and XDrawString */
   len1 = strlen(string1);
@@ -275,6 +287,17 @@ static void place_text(Window win,GC gc,XFontStruct *font_info,unsigned int win_
   width3 = XTextWidth(font_info, string3, len3);
 
   font_height = font_info->ascent + font_info->descent;
+  if(isJis){
+    strMsb[0].byte1 = 0x24;
+    strMsb[0].byte2 = 0x22;
+
+    strMsb[1].byte1 = 0x25;
+    strMsb[1].byte2 = 0x22;
+
+    /* Output text, old JIS encoding */
+    XDrawString16(display, win, gc, 20,20,strMsb
+	      ,2);
+  }
 
   /* Output text, centered on each line */
   XDrawString(display, win, gc, (win_width - width1)/2,
