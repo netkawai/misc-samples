@@ -5,5 +5,3 @@ XDG_SESSION_TYPE=wayland dbus-run-session gnome-session
 # stop automatic sleep
 # gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 0
 
-# does not work
-#gsettings set org.gnome.mutter.experimental-features "['autostart-xwayland']" 1
