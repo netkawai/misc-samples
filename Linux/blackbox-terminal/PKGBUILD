@@ -1,0 +1,36 @@
+# Maintainer: Mark Wagie <mark dot wagie at proton dot me> Contributor: 
+# Dimitris Kiziridis <dkiziridis at outlook dot com>
+pkgname=blackbox-terminal 
+pkgver=0.14.0 
+pkgrel=3 
+pkgdesc="A beautiful GTK 4 terminal" arch=('x86_64') 
+url="https://gitlab.gnome.org/raggesilver/blackbox" 
+license=('GPL-3.0-or-later') 
+depends=(
+  'libadwaita' 
+  'libgee' 
+  'vte4' 
+) 
+makedepends=( 
+  'meson' 
+  'vala'
+  'git'
+) 
+
+checkdepends=('appstream-glib') 
+source=("git+https://gitlab.gnome.org/raggesilver/blackbox.git") 
+sha256sums=('SKIP') 
+
+
+build() {
+  mv blackbox "$pkgname"
+  cd "$srcdir/$pkgname"
+  arch-meson build -Dblackbox_is_flatpak=false
+  meson compile -C build
+}
+
+
+package() { 
+  cd "$srcdir/$pkgname"
+  meson install -C build  --destdir "$pkgdir"
+}
