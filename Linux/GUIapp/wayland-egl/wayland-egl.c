@@ -5,9 +5,175 @@
 #include <string.h>
 #include <wayland-client.h>
 #include <wayland-egl.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #define WIDTH 256
 #define HEIGHT 256
+
+#ifndef M_PI
+#define M_PI 3.14159265
+#endif
+
+
+/** Event handler results: */
+#define NOP 0
+#define EXIT 1
+#define DRAW 2
+
+static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
+static GLint gear1, gear2, gear3;
+static GLfloat angle = 0.0;
+
+static GLboolean fullscreen = GL_FALSE;	/* Create a single fullscreen window */
+static GLboolean stereo = GL_FALSE;	/* Enable stereo.  */
+static GLint samples = 0;               /* Choose visual with at least N samples. */
+static GLint swapinterval = 1;          /* Swap interval */
+static GLboolean use_srgb = GL_FALSE;
+static GLboolean animate = GL_TRUE;	/* Animation */
+static GLfloat eyesep = 5.0;		/* Eye separation. */
+static GLfloat fix_point = 40.0;	/* Fixation point distance.  */
+static GLfloat left, right, asp;	/* Stereo frustum params.  */
+
+
+/*
+ *
+ *  Draw a gear wheel.  You'll probably want to call this function when
+ *  building a display list since we do a lot of trig here.
+ * 
+ *  Input:  inner_radius - radius of hole at center
+ *          outer_radius - radius at center of teeth
+ *          width - width of gear
+ *          teeth - number of teeth
+ *          tooth_depth - depth of tooth
+ */
+static void
+gear(GLfloat inner_radius, GLfloat outer_radius, GLfloat width,
+     GLint teeth, GLfloat tooth_depth)
+{
+   GLint i;
+   GLfloat r0, r1, r2;
+   GLfloat angle, da;
+   GLfloat u, v, len;
+
+   r0 = inner_radius;
+   r1 = outer_radius - tooth_depth / 2.0;
+   r2 = outer_radius + tooth_depth / 2.0;
+
+   da = 2.0 * M_PI / teeth / 4.0;
+
+   glShadeModel(GL_FLAT);
+
+   glNormal3f(0.0, 0.0, 1.0);
+
+   /* draw front face */
+   glBegin(GL_QUAD_STRIP);
+   for (i = 0; i <= teeth; i++) {
+      angle = i * 2.0 * M_PI / teeth;
+      glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+      glVertex3f(r1 * cos(angle), r1 * sin(angle), width * 0.5);
+      if (i < teeth) {
+	 glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+	 glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		    width * 0.5);
+      }
+   }
+   glEnd();
+
+   /* draw front sides of teeth */
+   glBegin(GL_QUADS);
+   da = 2.0 * M_PI / teeth / 4.0;
+   for (i = 0; i < teeth; i++) {
+      angle = i * 2.0 * M_PI / teeth;
+
+      glVertex3f(r1 * cos(angle), r1 * sin(angle), width * 0.5);
+      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), width * 0.5);
+      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		 width * 0.5);
+      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		 width * 0.5);
+   }
+   glEnd();
+
+   glNormal3f(0.0, 0.0, -1.0);
+
+   /* draw back face */
+   glBegin(GL_QUAD_STRIP);
+   for (i = 0; i <= teeth; i++) {
+      angle = i * 2.0 * M_PI / teeth;
+      glVertex3f(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
+      glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+      if (i < teeth) {
+	 glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		    -width * 0.5);
+	 glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+      }
+   }
+   glEnd();
+
+   /* draw back sides of teeth */
+   glBegin(GL_QUADS);
+   da = 2.0 * M_PI / teeth / 4.0;
+   for (i = 0; i < teeth; i++) {
+      angle = i * 2.0 * M_PI / teeth;
+
+      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		 -width * 0.5);
+      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		 -width * 0.5);
+      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), -width * 0.5);
+      glVertex3f(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
+   }
+   glEnd();
+
+   /* draw outward faces of teeth */
+   glBegin(GL_QUAD_STRIP);
+   for (i = 0; i < teeth; i++) {
+      angle = i * 2.0 * M_PI / teeth;
+
+      glVertex3f(r1 * cos(angle), r1 * sin(angle), width * 0.5);
+      glVertex3f(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
+      u = r2 * cos(angle + da) - r1 * cos(angle);
+      v = r2 * sin(angle + da) - r1 * sin(angle);
+      len = sqrt(u * u + v * v);
+      u /= len;
+      v /= len;
+      glNormal3f(v, -u, 0.0);
+      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), width * 0.5);
+      glVertex3f(r2 * cos(angle + da), r2 * sin(angle + da), -width * 0.5);
+      glNormal3f(cos(angle), sin(angle), 0.0);
+      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		 width * 0.5);
+      glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		 -width * 0.5);
+      u = r1 * cos(angle + 3 * da) - r2 * cos(angle + 2 * da);
+      v = r1 * sin(angle + 3 * da) - r2 * sin(angle + 2 * da);
+      glNormal3f(v, -u, 0.0);
+      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		 width * 0.5);
+      glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		 -width * 0.5);
+      glNormal3f(cos(angle), sin(angle), 0.0);
+   }
+
+   glVertex3f(r1 * cos(0), r1 * sin(0), width * 0.5);
+   glVertex3f(r1 * cos(0), r1 * sin(0), -width * 0.5);
+
+   glEnd();
+
+   glShadeModel(GL_SMOOTH);
+
+   /* draw inside radius cylinder */
+   glBegin(GL_QUAD_STRIP);
+   for (i = 0; i <= teeth; i++) {
+      angle = i * 2.0 * M_PI / teeth;
+      glNormal3f(-cos(angle), -sin(angle), 0.0);
+      glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+      glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+   }
+   glEnd();
+}
+
 
 static struct wl_display* display;
 static struct wl_compositor* compositor = NULL;
@@ -101,7 +267,77 @@ static void create_window( struct window* window, int32_t width, int32_t height 
     eglMakeCurrent( egl_display, window->egl_surface, window->egl_surface, window->egl_context );
 }
 
-static void delete_window( struct window* window )
+static void
+draw(void)
+{
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   glPushMatrix();
+   glRotatef(view_rotx, 1.0, 0.0, 0.0);
+   glRotatef(view_roty, 0.0, 1.0, 0.0);
+   glRotatef(view_rotz, 0.0, 0.0, 1.0);
+
+   glPushMatrix();
+   glTranslatef(-3.0, -2.0, 0.0);
+   glRotatef(angle, 0.0, 0.0, 1.0);
+   glCallList(gear1);
+   glPopMatrix();
+
+   glPushMatrix();
+   glTranslatef(3.1, -2.0, 0.0);
+   glRotatef(-2.0 * angle - 9.0, 0.0, 0.0, 1.0);
+   glCallList(gear2);
+   glPopMatrix();
+
+   glPushMatrix();
+   glTranslatef(-3.1, 4.2, 0.0);
+   glRotatef(-2.0 * angle - 25.0, 0.0, 0.0, 1.0);
+   glCallList(gear3);
+   glPopMatrix();
+
+   glPopMatrix();
+}
+
+static void
+draw_gears(void)
+{
+   if (stereo) {
+      /* First left eye.  */
+      glDrawBuffer(GL_BACK_LEFT);
+
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      glFrustum(left, right, -asp, asp, 5.0, 60.0);
+
+      glMatrixMode(GL_MODELVIEW);
+
+      glPushMatrix();
+      glTranslated(+0.5 * eyesep, 0.0, 0.0);
+      draw();
+      glPopMatrix();
+
+      /* Then right eye.  */
+      glDrawBuffer(GL_BACK_RIGHT);
+
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      glFrustum(-right, -left, -asp, asp, 5.0, 60.0);
+
+      glMatrixMode(GL_MODELVIEW);
+
+      glPushMatrix();
+      glTranslated(-0.5 * eyesep, 0.0, 0.0);
+      draw();
+      glPopMatrix();
+   }
+   else {
+      draw();
+   }
+}
+
+
+static void 
+delete_window( struct window* window )
 {
     eglDestroySurface( egl_display, window->egl_surface );
     wl_egl_window_destroy( window->egl_window );
@@ -112,22 +348,101 @@ static void delete_window( struct window* window )
 
 static int had_displayed = 0;
 
-static void draw_window( struct window* window )
+static void 
+init(void)
 {
-   if(had_displayed == 0)
-   {
       const GLubyte* vendor = glGetString(GL_VENDOR);
       const GLubyte* renderer = glGetString(GL_RENDERER);
       const GLubyte* glversion = glGetString(GL_VERSION);
       printf("Vendor: %s\n",vendor);
       printf("Renderer: %s\n",renderer);
       printf("Version: %s\n",glversion);
-      had_displayed =  1;
+    
+   static GLfloat pos[4] = { 5.0, 5.0, 10.0, 0.0 };
+   static GLfloat red[4] = { 0.8, 0.1, 0.0, 1.0 };
+   static GLfloat green[4] = { 0.0, 0.8, 0.2, 1.0 };
+   static GLfloat blue[4] = { 0.2, 0.2, 1.0, 1.0 };
+   int i;
+
+   glLightfv(GL_LIGHT0, GL_POSITION, pos);
+   glEnable(GL_CULL_FACE);
+   glEnable(GL_LIGHTING);
+   glEnable(GL_LIGHT0);
+   glEnable(GL_DEPTH_TEST);
+   if (use_srgb) {
+      for (i = 0; i < 3; ++i) {
+         red[i] = srgb_to_linear(red[i]);
+         green[i] = srgb_to_linear(green[i]);
+         blue[i] = srgb_to_linear(blue[i]);
+      }
+      glEnable(GL_FRAMEBUFFER_SRGB);
    }
 
-    glClearColor( 0.0, 1.0, 0.0, 1.0 );
-    glClear( GL_COLOR_BUFFER_BIT );
+   /* make the gears */
+   gear1 = glGenLists(1);
+   glNewList(gear1, GL_COMPILE);
+   glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, red);
+   gear(1.0, 4.0, 1.0, 20, 0.7);
+   glEndList();
+
+   gear2 = glGenLists(1);
+   glNewList(gear2, GL_COMPILE);
+   glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, green);
+   gear(0.5, 2.0, 2.0, 10, 0.7);
+   glEndList();
+
+   gear3 = glGenLists(1);
+   glNewList(gear3, GL_COMPILE);
+   glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, blue);
+   gear(1.3, 2.0, 0.5, 10, 0.7);
+   glEndList();
+
+   glEnable(GL_NORMALIZE);
+
+    had_displayed =  1;
+
+}
+
+static void draw_frame( struct window* window )
+{
+   if(had_displayed == 0)
+   {
+       init();
+   }
+
+   static int frames = 0;
+   static double tRot0 = -1.0, tRate0 = -1.0;
+   double dt, t = current_time();
+
+   if (tRot0 < 0.0)
+      tRot0 = t;
+   dt = t - tRot0;
+   tRot0 = t;
+
+   if (animate) {
+      /* advance rotation for next frame */
+      angle += 70.0 * dt;  /* 70 degrees per second */
+      if (angle > 3600.0)
+         angle -= 3600.0;
+   }
+
+   draw_gears();
     eglSwapBuffers( egl_display, window->egl_surface );
+    
+   frames++;
+   
+   if (tRate0 < 0.0)
+      tRate0 = t;
+   if (t - tRate0 >= 5.0) {
+      GLfloat seconds = t - tRate0;
+      GLfloat fps = frames / seconds;
+      printf("%d frames in %3.1f seconds = %6.3f FPS\n", frames, seconds,
+             fps);
+      fflush(stdout);
+      tRate0 = t;
+      frames = 0;
+   }
+
 }
 
 int main()
@@ -146,7 +461,7 @@ int main()
     while( running )
     {
         wl_display_dispatch_pending( display );
-        draw_window( &window );
+        draw_frame( &window );
     }
 
     delete_window( &window );
