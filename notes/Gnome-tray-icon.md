@@ -1,0 +1,1 @@
+so Gnome 3 abandoned tray icon in default. xdg notification intended to show Windows 10 or Apple(MacOS) style notification. but There is no way to show app icon and status Windows XP style notification. Since they were getting lots of design principles from MacOS, actually they are not fun of systray concepts (Mac exists but much simpler features than Windows)
