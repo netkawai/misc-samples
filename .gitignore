@@ -480,6 +480,8 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+
+## Mac
 .DS_Store
 ## User settings
 xcuserdata/
@@ -487,6 +489,8 @@ xcuserdata/
 ## Xcode 8 and earlier
 *.xcscmblueprint
 *.xccheckout
+## Mac
+
 
 # avoid no name execute
 a.out
