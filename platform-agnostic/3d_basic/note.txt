@@ -1,3 +1,0 @@
-http://www.songho.ca/opengl/index.html
-
-This is a great note

@@ -22,76 +22,48 @@ static char * dump_val(char *buf, union dType val)
 int main() 
 { 
 
-     char buf1[20],buf2[20],buf3[20],buf4[20]; 
+  char buf1[20],buf2[20],buf3[20],buf4[20]; 
 
-     union dType a,b,c; 
+  union dType a,b,c; 
 
-     a.d = 20.2; 
+  a.d = 20.2; 
 
-     b.d = 0.2; 
+  b.d = 0.2; 
 
-     c.d = a.d; 
+  c.d = a.d; 
 
-     const double ZERO = 0.0; 
+  const double ZERO = 0.0; 
 
-     double h = (a.d - b.d); 
+  double h = (a.d - b.d); 
 
-     if((a.d - b.d) == 20.0)  
+  if((a.d - b.d) == 20.0)  
 
-     // if you compile with -mfpmath=sse -msse2, value is eqal, if you complie with x87 instruction , it is not eqaul 
+  // if you compile with -mfpmath=sse -msse2, value is eqal, if you complie with x87 instruction , it is not eqaul 
+  { 
+    printf("equal\n"); 
+  } else { 
+     printf("not equal\n"); 
+  } 
 
-     { 
+  if(h == 20.0) 
+  { 
+    printf("equal\n"); 
+  } else { 
+    printf("not equal\n"); 
+  } 
 
-          printf("equal\n"); 
+  if((a.d-c.d) == ZERO)  
+  { 
+    printf("equal\n"); 
+  }else { 
+    printf("not equal\n"); 
+  } 
+  printf("%lf,%lf, %lf\n",a, b, (a.d-b.d)); 
 
-     } 
+  union dType e,f; 
+   e.d = a.d - b.d; 
 
-     else 
-
-     { 
-
-          printf("not equal\n"); 
-
-     } 
-
-     if(h == 20.0) 
-
-     { 
-
-          printf("equal\n"); 
-
-     } 
-
-     else 
-
-     { 
-
-          printf("not equal\n"); 
-
-     } 
-
-     if((a.d-c.d) == ZERO)  
-
-     { 
-
-          printf("equal\n"); 
-
-     }else 
-
-     { 
-
-          printf("not equal\n"); 
-
-     } 
-
-     printf("%lf,%lf, %lf\n",a, b, (a.d-b.d)); 
-
-     union dType e,f; 
-
-     e.d = a.d - b.d; 
-
-     f.d = 20.0; 
-
-     printf("%s %s %s %s\n", dump_val(buf1,a), dump_val(buf2,b), dump_val(buf3,e),dump_val(buf4,f)); 
+   f.d = 20.0; 
+   printf("%s %s %s %s\n", dump_val(buf1,a), dump_val(buf2,b), dump_val(buf3,e),dump_val(buf4,f)); 
 
 } 

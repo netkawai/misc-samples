@@ -1,8 +1,0 @@
-[core]
-	autocrlf = true
-	safecrlf = true
-	whitespace = cr-at-eol
-	excludesfile = ~/.gitignore_global
-    attributesfile = ~/.gitattributes
-	pager = more.com
-	editor = \"C:\\Users\\Kawai\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" --wait
