@@ -11,7 +11,7 @@ Take off   Leave the ground/undress clothes
 Wake up
 Speak up   Speak more loudly
 Hurry up    Do something more quickly
-Wash up    Wask the plates
+Wash up    Wash the plates
 Grow up    Become an adult
 Take a wash Wash the face
 Give up
