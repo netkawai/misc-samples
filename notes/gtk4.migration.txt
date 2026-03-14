@@ -1,0 +1,6 @@
+Big major difference
+GTK3 (ATK-3 Library)
+GTK4 (Directly talk with AT-SPI2)
+
+major different
+obsolete application apis

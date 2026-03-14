@@ -1,0 +1,1 @@
+weston --backend=rdp-backend.so --socket=wayland-0 --rdp-tls-cert=tls.crt --rdp-tls-key=tls.key --width=1024 --height=768

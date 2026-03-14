@@ -1,0 +1,1 @@
+If you make .android folder in Windows other than the user default home (C:\Users\Kawai\.android), avd tools looked always the folder... so I needed link to the folder... now (2022) I don't know
