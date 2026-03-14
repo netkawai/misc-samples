@@ -3,7 +3,7 @@
 < use_local_modulesets = False
 < modulesets_dir = ""
 ---
-> moduleset = 'http://github.com/GNOME/gtk-osx/raw/master/modulesets-stable/gtk-osx.modules'
+> moduleset = 'https://github.com/GNOME/gtk-osx/raw/master/modulesets-stable/gtk-osx.modules'
 > use_local_modulesets = True
 > modulesets_dir = "/Users/kawai/Source/gtk-osx-build/modulesets-stable"
 612c612
