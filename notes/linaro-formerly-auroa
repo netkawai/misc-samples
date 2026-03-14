@@ -1,0 +1,2 @@
+# one of pbulically available source
+repo init --depth=1 --current-branch -u https://git.codelinaro.org/clo/le/le/manifest.git -b release -m AU_LINUX_EMBEDDED_LE.UM.7.4.1.C1_TARGET_ALL.01.588.010.xml --repo-url=https://git.codelinaro.org/clo/tools/repo.git --repo-branch=qc-stable

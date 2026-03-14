@@ -1,0 +1,10 @@
+Download App SDK runtime for non-pacage 
+(This is different from the tempalte to generate WinUI C# project, since non-package version require DynamicDependency
+to access the Windows Runtime API without package id, they are required into globally installation)
+https://aka.ms/windowsappsdk/1.0-stable/msix-installer
+
+If I install WinUI3 from Microsoft Store, somehow Store install Windows App Runtime, so.. I cannot install for developer version.
+(contents are different??? if Full Family Identifier cannot distingush content, so already design flaw)
+App installation failed with error message: Deployment of package Microsoft.WindowsAppRuntime.1.1_1001.524.1918.0_x64__8wekyb3d8bbwe was blocked because the provided package has the same identity as an already-installed package 
+but the contents are different. 
+Increment the version number of the package to be installed, or remove the old package for every user on the system before installing this package. (0x80073cfb)
