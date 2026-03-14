@@ -1,0 +1,13 @@
+371,373c371,373
+< moduleset = 'http://gitlab.gnome.org/GNOME/gtk-osx/raw/master/modulesets-stable/gtk-osx.modules'
+< use_local_modulesets = False
+< modulesets_dir = ""
+---
+> moduleset = 'http://github.com/GNOME/gtk-osx/raw/master/modulesets-stable/gtk-osx.modules'
+> use_local_modulesets = True
+> modulesets_dir = "/Users/kawai/Source/gtk-osx-build/modulesets-stable"
+612c612
+<     print("Entered jhbuild shell, type 'exit' to return.")
+---
+>     print("Entered jhbuild shell, type 'exit' to return.")
+\ No newline at end of file
