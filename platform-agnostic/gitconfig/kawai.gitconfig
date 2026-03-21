@@ -1,3 +1,5 @@
+[user]
+	email = netkawai@users.noreply.github.com 
 [core]
 	autocrlf = true
 	safecrlf = true
