@@ -29,9 +29,6 @@ static void on_green_clicked(GtkButton *btn, gpointer user_data) {
     apply_bg_color(GTK_WIDGET(user_data), "green");
 }
 
-
-#include <gtk/gtk.h>
-
 // Callback to log the "Reflow" events
 static void on_layout_changed(GtkWidget *widget, int width, int height, int baseline, gpointer user_data) {
     // GtkFlowBox doesn't have a direct "get_columns" method, 
@@ -62,7 +59,7 @@ static void activate(GtkApplication *app, gpointer user_data) {
         // Connect the resize/layout logger
     g_signal_connect(flowbox, "size-allocate", G_CALLBACK(on_layout_changed), NULL);
 
-    gtk_flow_box_set_valign(GTK_FLOW_BOX(flowbox), GTK_ALIGN_START);
+    gtk_widget_set_valign(flowbox, GTK_ALIGN_START);
     gtk_flow_box_set_max_children_per_line(GTK_FLOW_BOX(flowbox), 10);
     gtk_flow_box_set_selection_mode(GTK_FLOW_BOX(flowbox), GTK_SELECTION_NONE);
     
