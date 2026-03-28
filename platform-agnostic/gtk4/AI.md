@@ -48,6 +48,10 @@ To move forward with your design, you might want to consider:
 [15] [https://blogs.gnome.org](https://blogs.gnome.org/chergert/2020/12/15/gtk-4-got-a-new-macos-backend-now-with-opengl/)
 [16] [https://www.reddit.com](https://www.reddit.com/r/gnome/comments/rlnk4a/gtk4ifying_settings/)
 
+
+I need to know use GSK to draw simple round rectangle and text like cairo but with GtkSpanhost
+
+
 To draw a rounded rectangle and text using GSK (GPU-accelerated) instead of Cairo, you override the snapshot virtual function of a widget. Instead of a "pen" drawing pixels, you are essentially "recording" instructions into the GtkSnapshot object.
 The GSK Approach (Pure C)
 In GTK 4, you use Graphene (a math library) to define the geometry and Pango to handle the text layout.
