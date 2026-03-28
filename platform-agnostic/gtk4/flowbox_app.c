@@ -1,16 +1,16 @@
 #include <gtk/gtk.h>
 
-// Helper to apply CSS to a widget (Window)
 static void apply_bg_color(GtkWidget *widget, const char *color_name) {
-    GtkStyleContext *context = gtk_widget_get_style_context(widget);
     GtkCssProvider *provider = gtk_css_provider_new();
-    
-    // Construct CSS to change the window background
     char *css = g_strdup_printf("window { background-color: %s; }", color_name);
     
-    gtk_css_provider_load_from_data(provider, css, -1);
-    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), 
-                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    // Modern GTK 4.12+ way: load directly from the string
+    gtk_css_provider_load_from_string(provider, css);
+    
+    // Apply globally to the current display
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+                                               GTK_STYLE_PROVIDER(provider),
+                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     
     g_free(css);
     g_object_unref(provider);
@@ -29,23 +29,22 @@ static void on_green_clicked(GtkButton *btn, gpointer user_data) {
     apply_bg_color(GTK_WIDGET(user_data), "green");
 }
 
-// Callback to log the "Reflow" events
-static void on_layout_changed(GtkWidget *widget, int width, int height, int baseline, gpointer user_data) {
-    // GtkFlowBox doesn't have a direct "get_columns" method, 
-    // but we can see the allocated width change in real-time.
-    static int last_width = 0;
+static void on_window_resize(GObject *object, GParamSpec *pspec, gpointer user_data) {
+    // We can cast the object to a GtkWidget since GtkWindow is a widget
+    GtkWidget *window_widget = GTK_WIDGET(object);
     
-    if (width != last_width) {
-        g_print("[Layout Log] FlowBox Resized: %dpx wide. Buttons are reflowing...\n", width);
-        
-        // Logic check: based on 200px buttons + 10px spacing
-        int max_cols = width / 210; 
-        if (max_cols < 1) max_cols = 1;
-        if (max_cols > 3) max_cols = 3;
-        
-        g_print("             Estimated Layout: %d Columns\n", max_cols);
-        last_width = width;
-    }
+    // Get the current width as it appears on screen
+    int width = gtk_widget_get_width(window_widget);
+    
+    // Prevent logging 0 during initial setup
+    if (width <= 0) return;
+
+    // Logic check: based on 200px buttons + 10px spacing
+    int max_cols = width / 210; 
+    if (max_cols < 1) max_cols = 1;
+    if (max_cols > 3) max_cols = 3;
+    
+    g_print("[Layout Log] Window Width: %dpx | Estimated Columns: %d\n", width, max_cols);
 }
 
 static void activate(GtkApplication *app, gpointer user_data) {
@@ -53,11 +52,12 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_window_set_title(GTK_WINDOW(window), "Responsive GPU FlowBox");
     gtk_window_set_default_size(GTK_WINDOW(window), 650, 400);
 
+    // Instead of connecting to flowbox "size-allocate"
+    // Connect to the window's width notification
+    g_signal_connect(window, "notify::default-width", G_CALLBACK(on_window_resize), NULL);
+ 
     // 1. Create the FlowBox (The responsive layout engine)
     GtkWidget *flowbox = gtk_flow_box_new();
-
-        // Connect the resize/layout logger
-    g_signal_connect(flowbox, "size-allocate", G_CALLBACK(on_layout_changed), NULL);
 
     gtk_widget_set_valign(flowbox, GTK_ALIGN_START);
     gtk_flow_box_set_max_children_per_line(GTK_FLOW_BOX(flowbox), 10);
