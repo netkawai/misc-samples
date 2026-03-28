@@ -1,5 +1,5 @@
 # Name of your binary
-TARGET = gsk_rect_app
+TARGETS = custom_rect flowbox_app
 
 # Source files
 SRC = main.c
@@ -10,16 +10,16 @@ CC = gcc
 CFLAGS = `pkg-config --cflags gtk4` -Wall -Wextra -O2
 LIBS = `pkg-config --libs gtk4`
 
-# Default rule
-all: $(TARGET)
+# Default rule: builds everything in the TARGETS list
+all: $(TARGETS)
 
-$(TARGET): $(SRC)
-	$(CC) $(SRC) -o $(TARGET) $(CFLAGS) $(LIBS)
+# 2. Pattern Rule: This tells Make how to build ANY target from a .c file
+# % matches the filename
+# $@ is the target name (e.g., custom_rect)
+# $< is the first dependency (e.g., custom_rect.c)
+%: %.c
+	$(CC) $< -o $@ $(CFLAGS) $(LIBS)
 
 # Clean rule
 clean:
-	rm -f $(TARGET)
-
-# Run rule
-run: all
-	./$(TARGET)
+	rm -f $(TARGETS)
