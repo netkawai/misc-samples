@@ -1,0 +1,13 @@
+# IAC Project Installation Information - DO NOT EDIT!
+#
+# Insert the following line into the iac_proj/iac_proj.v file
+  "../iac_proj/rd_dmine/rd_dmine.v" ReadDatamine;
+# In the following iac_lib file
+data_io.v
+# insert the following line
+    IAC_PROJ.ReadDatamine.ReadDatamineMacs.read_datamine read_datamine;
+# In the following iac_lib file
+examples.v
+# insert the following line
+    IAC_PROJ.ReadDatamine.ReadDatamineApps.ReadDatamineEg ReadDatamineEg;
+
