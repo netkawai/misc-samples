@@ -1,0 +1,2 @@
+# grep example, recursie , display line number, pattern=foo , search directory /usr/share/vim/
+grep --color -Rin --include="*.vim" foo /usr/share/vim/

@@ -1,0 +1,3 @@
+Certificate Manager for the local machine - certlm.msc.
+Certificate Manager for the user - certmgr.msc 
+

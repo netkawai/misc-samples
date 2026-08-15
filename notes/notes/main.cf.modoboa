@@ -1,0 +1,32 @@
+# Those are what I changed from the modoboa generated 
+# Add ip6-localhost
+mynetworks = 127.0.0.0/8 [::1]/128 
+# Recipient restriction rules
+smtpd_recipient_restrictions =
+#     check_policy_service inet:127.0.0.1:9999 # I am not sure why, but always connection refused (disable clamav)
+      permit_mynetworks
+      permit_sasl_authenticated
+      check_recipient_access
+          proxy:pgsql:/etc/postfix/sql-maintain.cf
+          proxy:pgsql:/etc/postfix/sql-relay-recipient-verification.cf
+      reject_unverified_recipient
+      reject_unauth_destination
+      reject_non_fqdn_sender
+      reject_non_fqdn_recipient
+      reject_non_fqdn_helo_hostname
+
+
+## Relay domains
+#
+#relay_domains =
+#        proxy:pgsql:/etc/postfix/sql-relaydomains.cf
+#transport_maps =
+#       proxy:pgsql:/etc/postfix/sql-transport.cf
+#        proxy:pgsql:/etc/postfix/sql-spliteddomains-transport.cf
+
+relayhost = [smtp-relay.sendinblue.com]:587
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl/mypasswd
+smtp_sasl_security_options = noanonymous
+smtp_tls_security_level = may
+header_size_limit = 4096000

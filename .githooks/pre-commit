@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Regex for prohibited Windows characters. 
+# Added '+' to the standard list per your request.
+PROHIBITED_CHARS='[+<>:"\\|?*]'
+
+# Get the list of files staged for commit (Added 'A' or Renamed 'R')
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=AR)
+
+# Flag to track if we found an invalid filename
+INVALID_FOUND=0
+
+for FILE in $STAGED_FILES; do
+    # Check if the filename contains any prohibited characters
+    if [[ "$FILE" =~ $PROHIBITED_CHARS ]]; then
+        echo "❌ Error: Forbidden character in filename: '$FILE'"
+        echo "👉 Windows systems do not support symbols like +, <, >, :, \", |, ?, or *"
+        INVALID_FOUND=1
+    fi
+done
+
+# If any invalid files were found, block the commit
+if [ $INVALID_FOUND -ne 0 ]; then
+    echo "✋ Commit aborted. Please rename the file(s) and try again."
+    exit 1
+fi
+
+# Otherwise, let the commit proceed
+exit 0

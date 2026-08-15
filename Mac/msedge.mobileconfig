@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.microsoft.Edge</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>PayloadIdentifier</key>
+            <string>com.masaprofile.edge.doh</string>
+            <key>PayloadUUID</key>
+            <string>F3A2C1B4-9D12-4E56-8A77-ABCDEF123456</string>
+            <key>PayloadDisplayName</key>
+            <string>Edge DoH Override (AdGuard Family)</string>
+
+            <key>BuiltInDnsClientEnabled</key>
+            <true/>
+
+            <key>DnsOverHttpsMode</key>
+            <string>secure</string>
+
+            <key>DnsOverHttpsTemplates</key>
+                <string>https://d.adguard-dns.com/dns-query/a739dc24{?dns}</string>
+
+
+            <key>SecureDnsMapping</key>
+            <array>
+                <dict>
+                    <key>hostname</key>
+                    <string>d.adguard-dns.com</string>
+                    <key>ips</key>
+                    <array>
+                        <string>94.140.14.49</string>
+                    </array>
+                </dict>
+            </array>
+        </dict>
+    </array>
+
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadIdentifier</key>
+    <string>com.masaprofile.edge.config</string>
+    <key>PayloadUUID</key>
+    <string>1A2B3C4D-5678-90AB-CDEF-112233445566</string>
+    <key>PayloadDisplayName</key>
+    <string>Edge AdGuard Family DoH Profile</string>
+</dict>
+</plist>

@@ -1,0 +1,35 @@
+
+To setup a SQL Server Datasource in Glassfish, follow these steps:
+
+Copy Microsoft's SQL Server JDBC driver (sqljdbc.jar) to /glassfish/domains/domain1/lib/ext directory. 
+(or add sqljdbc.jar to war project)
+
+Note: "domain1" is a default Glassfish domain. The  domain may be different for specific deployments. 
+Open administrative console of the Glassfish server: http://localhost:4848 
+(or whichever value used instead of localhost) 
+
+Login to the admin interface (Default username is admin and default password is adminadmin). 
+From the main tree (Common Tasks) expand Resources and go to JDBC > Connection Pools. 
+Create a Connection pool: 
+
+Name: Generally connection pool name is the name of the database 
+Resource Type: javax.sql.DataSource 
+Database Vendor: Microsoft SQL Sever 
+
+Then enter the following data: 
+
+General Configuration 
+Datasource class name: com.microsoft.sqlserver.jdbc.SQLServerDataSource 
+Transaction Isolation: read-uncommited (this is very important!)
+
+Additional properties 
+user 
+password 
+databaseName 
+serverName 
+instanceName. 
+
+The default port for SQL Server is 1433, if the server uses another port, 
+it must be added to the property portNumber. 
+The newly created connection pool will appear on the list of Connection Pools. 
+Select the pool and do a connection ping test.

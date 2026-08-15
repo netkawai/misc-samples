@@ -1,0 +1,1 @@
+ git config core.editor  "\"C:\\\\Program Files\\\\VSCodium\\\\VSCodium\" --wait"

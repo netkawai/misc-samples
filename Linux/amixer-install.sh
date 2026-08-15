@@ -1,0 +1,1 @@
+pacman -S alsa-utils
