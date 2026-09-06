@@ -1,0 +1,33 @@
+curl https://download.gnome.org/sources/glib/2.86/glib-2.86.5.tar.xz
+tar xvfJ glib-2.86.5.tar.xz
+cd glib-2.86.5
+
+cat << 'EOF' > g_environ_fix.patch
+--- a/glib/genviron.c
++++ b/glib/genviron.c
+@@ -254,6 +254,9 @@
+ {
+   g_return_val_if_fail (variable != NULL, NULL);
+ 
++  /* follow POSIX 2008 */
++  if (strchr (variable, '=')) return NULL;
++  
+   return getenv (variable);
+ }
+ 
+EOF
+
+patch -p1 < g_environ_fix.patch
+
+meson setup builddir \
+  --prefix="$HOME/.local" \
+  --buildtype=release \
+  -Dtests=true \
+  -Dnls=disabled \
+  -Dintrospection=disabled \
+  -Dglib_debug=disabled \
+  -Dsysprof=disabled
+  
+
+meson compile -C builddir 
+meson test -C builddir --suite glib --print-errorlogs
